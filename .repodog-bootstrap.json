@@ -115,6 +115,18 @@
   ],
   "replacements": [
     {
+      "from": "badbatch/repodog-nextjs-kickstarter",
+      "to": "{{repository}}"
+    },
+    {
+      "from": "badbatch/repodog-dotnet-kickstarter",
+      "to": "{{owner}}/{{counterpartRepository}}"
+    },
+    {
+      "from": "\"An opinionated Next.js application starter paired with repodog-dotnet-kickstarter.\"",
+      "to": "{{description|json}}"
+    },
+    {
       "from": "miami-man/repodog-nextjs-kickstarter",
       "to": "{{repository}}"
     },
@@ -148,5 +160,72 @@
     }
   ],
   "renamePaths": [],
-  "exclude": []
+  "exclude": [],
+  "whenMissing": {
+    "counterpartRepository": {
+      "exclude": [".github/workflows/e2e.yml", "compose.e2e.yaml", "scripts/testE2eDocker.ts", "Dockerfile.e2e"],
+      "fileReplacements": [
+        {
+          "file": ".github/workflows/validate.yml",
+          "from": "\n  e2e:\n    needs: validate\n    uses: ./.github/workflows/e2e.yml\n    with:\n      caller-repository: ${{ github.repository }}\n      caller-ref: ${{ github.sha }}\n      source-branch: ${{ github.head_ref }}\n      fallback-ref: ${{ vars.E2E_API_FALLBACK_REF }}\n    secrets:\n      CROSS_REPO_READ_TOKEN: ${{ secrets.CROSS_REPO_READ_TOKEN }}\n",
+          "to": "\n"
+        },
+        {
+          "file": "package.json",
+          "from": "    \"test:e2e:docker\": \"node scripts/testE2eDocker.ts\",\n",
+          "to": ""
+        },
+        {
+          "file": "README.md",
+          "from": "An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, seven next-box packages, typed browser/server API clients, NextAuth authentication, policy-based access and a real Docker browser-test suite. It works with [repodog-dotnet-kickstarter](https://github.com/badbatch/repodog-dotnet-kickstarter) through a defined API contract; a different backend can implement that contract too.",
+          "to": "An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, seven next-box packages, typed browser/server API clients, NextAuth authentication and policy-based access. Configure a backend implementing the documented endpoint contract; it can be hosted independently and does not have to use .NET."
+        },
+        {
+          "file": "README.md",
+          "from": "Start the sibling .NET API using its README, or start another backend implementing the contract below:",
+          "to": "Start a backend implementing the contract below:"
+        },
+        {
+          "file": "README.md",
+          "from": "| `pnpm test:e2e:docker`  | Builds the real frontend and .NET API, starts disposable SQL Server/accounts, then runs Playwright.      |\n",
+          "to": ""
+        },
+        {
+          "file": "README.md",
+          "from": "For Docker E2E, place the kickstarters beside one another and run `pnpm test:e2e:docker`. Docker is required; local account passwords and browser installation are not. Set `E2E_API_CONTEXT` to override the default `../repodog-dotnet-kickstarter` checkout. The runner removes the stack and volumes afterwards and retains `playwright-report/` and `test-results/`.",
+          "to": "Browser E2E can run against a compatible API using the configuration below. This standalone application does not include the paired Docker runner."
+        },
+        {
+          "file": "README.md",
+          "from": "## Integration with the .NET kickstarter",
+          "to": "## Backend integration contract"
+        },
+        {
+          "file": "README.md",
+          "from": "The backend role/policy definitions live in `AuthorizationPolicies.cs`; the frontend policy name lives in [libs/Auth/policies.ts](libs/Auth/policies.ts). When adding a policy, enforce it in the API, expose it through the current-user allowlist only if resource-independent, and apply the same name to relevant pages/BFF routes. Role changes become visible after token refresh; existing API tokens contain an identity snapshot.",
+          "to": "The backend must enforce its own authorization and return satisfied resource-independent policy names in `/users/me`. Keep those names aligned with the frontend policy constants. Resource-specific authorization belongs on the backend operation; frontend checks provide earlier feedback."
+        },
+        {
+          "file": "README.md",
+          "from": "The .NET request middleware includes these values in its structured log scope.",
+          "to": "The backend can include these values in its structured log scope."
+        },
+        {
+          "file": "README.md",
+          "from": "The API's bearer tokens are opaque Identity tokens; NextAuth's session JWT is a separate format and responsibility.",
+          "to": "Treat backend access tokens as opaque values; NextAuth's session JWT is a separate format and responsibility."
+        },
+        {
+          "file": "README.md",
+          "from": "The API does not expose a revocation endpoint for already-issued bearer tokens.",
+          "to": "The backend controls whether and how already-issued access tokens are revoked."
+        },
+        {
+          "file": "README.md",
+          "from": "## GitHub Actions\n\nEach repository validates its own code before running the shared E2E workflow in this repository. The E2E job uses the caller's merge commit and tries the same source branch in the counterpart. If absent, it uses `E2E_API_FALLBACK_REF` here or `E2E_APP_FALLBACK_REF` in the API repository; unset variables use the counterpart's default branch. Checkout uses resolved commit SHAs.\n\nConfigure `CROSS_REPO_READ_TOKEN` in both callers with read-only Contents access to both repositories, and permit the API repository to call this repository's reusable workflow. The workflow must exist on the ref used by the API caller. Fork PRs do not receive repository secrets. Reports are uploaded as artifacts; E2E credentials and database state are disposable.\n\n",
+          "to": "## GitHub Actions\n\nThe PR workflow validates this application and runs server integration tests. It does not check out another repository or require a cross-repository token. Browser tests can run separately against a compatible API.\n"
+        }
+      ]
+    }
+  }
 }
