@@ -1,0 +1,84 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    platform: linux/amd64
+    environment:
+      ACCEPT_EULA: 'Y'
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${E2E_DB_PASSWORD:?Run pnpm test:e2e:docker}
+    healthcheck:
+      test:
+        ['CMD-SHELL', '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -Q "SELECT 1" -C -b']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  api:
+    build:
+      context: ${E2E_API_CONTEXT:-../repodog-dotnet-kickstarter}
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__ApplicationDb: Server=db,1433;Database=ApplicationDb;User Id=sa;Password=${E2E_DB_PASSWORD:?Run pnpm test:e2e:docker};Encrypt=True;TrustServerCertificate=True
+      BootstrapUser__Email: ${E2E_PRIVILEGED_EMAIL:?Run pnpm test:e2e:docker}
+      BootstrapUser__Password: ${E2E_PRIVILEGED_PASSWORD:?Run pnpm test:e2e:docker}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      AUTH_SECRET: ${E2E_AUTH_SECRET:?Run pnpm test:e2e:docker}
+      AUTH_TRUST_HOST: 'true'
+      AUTH_URL: http://127.0.0.1:3000
+      KICKSTARTER_SERVER__API__BASE_URL: http://api:8080
+      NEXT_PUBLIC_LANGUAGE_CODE: en
+      HOSTNAME: 0.0.0.0
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: '1'
+      PORT: 3000
+    depends_on:
+      api:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/login').then(response => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  e2e:
+    # Share the app network namespace so Chromium uses a trusted loopback origin.
+    network_mode: service:web
+    build:
+      context: .
+      dockerfile: Dockerfile.e2e
+      args:
+        PLAYWRIGHT_VERSION: ${E2E_PLAYWRIGHT_VERSION:?Run pnpm test:e2e:docker}
+    init: true
+    shm_size: 1gb
+    environment:
+      AUTH_SECRET: ${E2E_AUTH_SECRET:?Run pnpm test:e2e:docker}
+      CI: 'true'
+      E2E_BASE_URL: http://127.0.0.1:3000
+      E2E_API_URL: http://api:8080
+      E2E_PRIVILEGED_EMAIL: ${E2E_PRIVILEGED_EMAIL:?Run pnpm test:e2e:docker}
+      E2E_PRIVILEGED_PASSWORD: ${E2E_PRIVILEGED_PASSWORD:?Run pnpm test:e2e:docker}
+      E2E_USER_EMAIL: ${E2E_USER_EMAIL:?Run pnpm test:e2e:docker}
+      E2E_USER_PASSWORD: ${E2E_USER_PASSWORD:?Run pnpm test:e2e:docker}
+    volumes:
+      - ./playwright-report:/app/playwright-report
+      - ./test-results:/app/test-results
+    depends_on:
+      web:
+        condition: service_healthy

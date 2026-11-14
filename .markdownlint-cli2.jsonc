@@ -1,0 +1,14 @@
+{
+  "config": {
+    "extends": "@repodog/markdownlint-config",
+  },
+  "ignores": [
+    "AGENTS.md",
+    "node_modules/**",
+    ".next/**",
+    "coverage/**",
+    "playwright-report/**",
+    "storybook-static/**",
+    "test-results/**",
+  ],
+}

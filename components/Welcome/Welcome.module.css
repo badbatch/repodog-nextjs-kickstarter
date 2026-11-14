@@ -1,0 +1,14 @@
+.title {
+  /* noinspection CssInvalidFunction */
+  font-size: rem(100px);
+  font-weight: 900;
+  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+
+  /* noinspection CssInvalidFunction */
+  letter-spacing: rem(-2px);
+
+  @media (max-width: $mantine-breakpoint-md) {
+    /* noinspection CssInvalidFunction */
+    font-size: rem(50px);
+  }
+}

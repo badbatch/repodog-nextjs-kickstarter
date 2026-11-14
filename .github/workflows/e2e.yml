@@ -1,0 +1,148 @@
+name: Shared app and API E2E
+
+on:
+  workflow_call:
+    inputs:
+      caller-repository:
+        required: true
+        type: string
+      caller-ref:
+        required: true
+        type: string
+      source-branch:
+        required: true
+        type: string
+      fallback-ref:
+        default: ''
+        required: false
+        type: string
+    secrets:
+      CROSS_REPO_READ_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: App and API E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check cross-repository token
+        env:
+          CROSS_REPO_READ_TOKEN: ${{ secrets.CROSS_REPO_READ_TOKEN }}
+        shell: bash
+        run: |
+          if [[ -z "${CROSS_REPO_READ_TOKEN:-}" ]]; then
+            echo "::error::CROSS_REPO_READ_TOKEN was not supplied. Add it as an Actions secret available to the calling repository."
+            exit 1
+          fi
+          echo "CROSS_REPO_READ_TOKEN was supplied. Its value will not be logged."
+
+      - name: Resolve matching branch or fallback
+        id: refs
+        uses: actions/github-script@v9
+        env:
+          CALLER_REPOSITORY: ${{ inputs.caller-repository }}
+          CALLER_REF: ${{ inputs.caller-ref }}
+          SOURCE_BRANCH: ${{ inputs.source-branch }}
+          FALLBACK_REF: ${{ inputs.fallback-ref }}
+        with:
+          github-token: ${{ secrets.CROSS_REPO_READ_TOKEN }}
+          script: |
+            const owner = context.repo.owner;
+            const appRepository = `${owner}/repodog-nextjs-kickstarter`;
+            const apiRepository = `${owner}/repodog-dotnet-kickstarter`;
+            const callerRepository = process.env.CALLER_REPOSITORY;
+
+            if (![appRepository, apiRepository].includes(callerRepository)) {
+              throw new Error(`Unsupported calling repository: ${callerRepository}`);
+            }
+
+            const counterpartRepository = callerRepository === appRepository
+              ? apiRepository : appRepository;
+
+            const repo = counterpartRepository.split('/')[1];
+
+            // Check repository access separately: a private-repository 404 must not trigger fallback.
+            let repository;
+
+            try {
+              ({ data: repository } = await github.rest.repos.get({ owner, repo }));
+            } catch (error) {
+              if ([401, 403, 404].includes(error.status)) {
+                throw new Error(`CROSS_REPO_READ_TOKEN was supplied, but GitHub could not grant access to ${counterpartRepository} (HTTP ${error.status}). Check the token value, resource owner, repository selection, and approval status.`);
+              }
+
+              throw error;
+            }
+
+            let counterpartSha;
+            let selectedRef;
+
+            try {
+              const { data: branch } = await github.rest.repos.getBranch({
+                owner, repo, branch: process.env.SOURCE_BRANCH,
+              });
+
+              counterpartSha = branch.commit.sha;
+              selectedRef = process.env.SOURCE_BRANCH;
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+
+              selectedRef = process.env.FALLBACK_REF || repository.default_branch;
+              core.info(`Branch ${process.env.SOURCE_BRANCH} is absent in ${counterpartRepository}; using ${selectedRef}.`);
+              const { data: commit } = await github.rest.repos.getCommit({ owner, repo, ref: selectedRef });
+              counterpartSha = commit.sha;
+            }
+
+            const callerSha = process.env.CALLER_REF;
+            core.setOutput('app-sha', callerRepository === appRepository ? callerSha : counterpartSha);
+            core.setOutput('api-sha', callerRepository === apiRepository ? callerSha : counterpartSha);
+            core.info(`Caller: ${callerRepository} @ ${callerSha}`);
+            core.info(`Counterpart: ${counterpartRepository} @ ${selectedRef} (${counterpartSha})`);
+
+      - name: Checkout app
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.repository_owner }}/repodog-nextjs-kickstarter
+          ref: ${{ steps.refs.outputs.app-sha }}
+          path: repodog-nextjs-kickstarter
+          token: ${{ secrets.CROSS_REPO_READ_TOKEN }}
+          persist-credentials: false
+
+      - name: Checkout API
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.repository_owner }}/repodog-dotnet-kickstarter
+          ref: ${{ steps.refs.outputs.api-sha }}
+          path: repodog-dotnet-kickstarter
+          token: ${{ secrets.CROSS_REPO_READ_TOKEN }}
+          persist-credentials: false
+
+      - name: Install app toolchain
+        uses: jdx/mise-action@v2
+        with:
+          working_directory: repodog-nextjs-kickstarter
+
+      - name: Install app dependencies
+        working-directory: repodog-nextjs-kickstarter
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Docker browser tests
+        working-directory: repodog-nextjs-kickstarter
+        run: pnpm test:e2e:docker
+
+      - name: Upload Playwright results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: |
+            repodog-nextjs-kickstarter/playwright-report/
+            repodog-nextjs-kickstarter/test-results/
+          if-no-files-found: ignore
+          retention-days: 7

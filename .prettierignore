@@ -1,0 +1,10 @@
+.next
+coverage
+node_modules
+pnpm-lock.yaml
+storybook-static
+public
+# Playwright artifacts
+playwright/.auth/
+playwright-report/
+test-results/

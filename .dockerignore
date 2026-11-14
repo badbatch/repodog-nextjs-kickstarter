@@ -1,0 +1,16 @@
+.git
+.next
+coverage
+node_modules
+storybook-static
+TestResults
+*.log
+.env*
+!.env.example
+
+playwright/.auth
+playwright-report
+test-results
+
+bff/httpClient
+server/httpClient

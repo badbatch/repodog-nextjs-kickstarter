@@ -1,0 +1,11 @@
+allowBuilds:
+  '@parcel/watcher': false
+  '@swc/core': false
+  core-js: false
+  esbuild: false
+  unrs-resolver: false
+  vue-demi: false
+
+minimumReleaseAge: 0
+
+enablePrePostScripts: true
