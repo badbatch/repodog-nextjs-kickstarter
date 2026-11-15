@@ -82,6 +82,7 @@
         "properties": {
           "email": {
             "type": "string",
+            "maxLength": 256,
             "format": "email"
           },
           "password": {
@@ -137,6 +138,29 @@
         },
         "required": [
           "message"
+        ]
+      },
+      "registrationSchema": {
+        "type": "object",
+        "properties": {
+          "confirmPassword": {
+            "type": "string",
+            "minLength": 1
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 256,
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "confirmPassword",
+          "email",
+          "password"
         ]
       },
       "serverApiSchema": {

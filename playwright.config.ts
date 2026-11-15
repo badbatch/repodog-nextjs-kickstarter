@@ -22,7 +22,7 @@ export default defineConfig({
     { name: 'setup', testMatch: /auth\.setup\.ts/u, use: { ...devices['Desktop Chrome'] } },
     {
       name: 'sign-in',
-      testMatch: /sign-in\.spec\.ts/u,
+      testMatch: /(?:sign-in|registration)\.spec\.ts/u,
       use: { ...devices['Desktop Chrome'] },
     },
     {

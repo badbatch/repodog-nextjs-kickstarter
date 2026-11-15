@@ -3,12 +3,22 @@
 import { AuthError } from 'next-auth';
 import { signIn } from '#auth.ts';
 import { tt } from '#content/index.ts';
+import { credentialsSchema } from '#server/auth/schemas.ts';
 
 export const login = async (_previous: string | undefined, formData: FormData): Promise<string | undefined> => {
+  const parsed = credentialsSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+  });
+
+  if (!parsed.success) {
+    return tt('pages.login.errors.invalidCredentials');
+  }
+
   try {
     await signIn('credentials', {
-      email: formData.get('email'),
-      password: formData.get('password'),
+      email: parsed.data.email,
+      password: parsed.data.password,
       redirectTo: '/',
     });
 

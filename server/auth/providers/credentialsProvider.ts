@@ -1,11 +1,8 @@
 import { CredentialsSignin } from 'next-auth';
 import Credentials, { type CredentialsConfig } from 'next-auth/providers/credentials';
-import { z } from 'zod';
 import { loadAppSettings } from '#appSettings/index.ts';
-import { currentUserSchema, tokenResponseSchema } from '#server/auth/schemas.ts';
+import { credentialsSchema, currentUserSchema, tokenResponseSchema } from '#server/auth/schemas.ts';
 import { createServerApiClient } from '#server/createServerApiClient.ts';
-
-const credentialsSchema = z.object({ email: z.email(), password: z.string().min(1) });
 
 export const authorizeCredentials: CredentialsConfig['authorize'] = async credentials => {
   const parsed = credentialsSchema.safeParse(credentials);

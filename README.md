@@ -1,10 +1,10 @@
 # Repodog Next.js Kickstarter
 
-An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, seven next-box packages, typed browser/server API clients, NextAuth authentication, policy-based access and a real Docker browser-test suite. It works with [repodog-dotnet-kickstarter](https://github.com/badbatch/repodog-dotnet-kickstarter) through a defined API contract; a different backend can implement that contract too.
+An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, seven NextBox packages, typed browser/server API clients, NextAuth authentication, policy-based access and a real Docker browser-test suite. It works with [repodog-dotnet-kickstarter](https://github.com/badbatch/repodog-dotnet-kickstarter) through a defined API contract; a different backend can implement that contract too.
 
 ## Install
 
-Install the versions in `.tool-versions` with mise, then install dependencies:
+Install the versions in `.tool-versions` with [mise](https://mise.jdx.dev/getting-started.html), then install dependencies:
 
 ```sh
 mise install
@@ -17,13 +17,13 @@ Put the generated value in `AUTH_SECRET` in `.env.local`. Set `KICKSTARTER_SERVE
 
 ## Run
 
-Start the sibling .NET API using its README, or start another backend implementing the contract below:
+Start the sibling .NET API using [its README](https://github.com/badbatch/repodog-dotnet-kickstarter/blob/main/README.md), or start another backend implementing the contract below:
 
 ```sh
 pnpm dev
 ```
 
-Open <http://localhost:3000>. Register an account through the API, then sign in at `/login`. The .NET starter can seed an account with the `ExampleUser` role using `BOOTSTRAP_USER_EMAIL` and `BOOTSTRAP_USER_PASSWORD`. All authenticated users can open `/` and load the API example; `/restricted` additionally requires `ExampleAccess`.
+Open <http://localhost:3000>. Choose **Create an account** on `/login`, or open `/register`. Register with an email and matching passwords, then sign in after the account-created confirmation. The .NET starter can seed an account with the `ExampleUser` role using `BOOTSTRAP_USER_EMAIL` and `BOOTSTRAP_USER_PASSWORD`. All authenticated users can open `/` and load the API example; `/restricted` additionally requires `ExampleAccess`.
 
 For a production build, run `pnpm build` followed by `pnpm start`. The build copies public assets into Next.js's standalone output. `predev` and `prebuild` automatically run all generators.
 
@@ -43,7 +43,7 @@ For Docker E2E, place the kickstarters beside one another and run `pnpm test:e2e
 
 For browser tests against a running API, set `E2E_API_URL`, `E2E_PRIVILEGED_EMAIL`, `E2E_PRIVILEGED_PASSWORD`, `E2E_USER_EMAIL` and `E2E_USER_PASSWORD`. The privileged account needs `ExampleAccess`; the ordinary account must not have it. By default Playwright starts the frontend on port 3100. Set `E2E_BASE_URL` to test an already-running frontend instead. Tests expect English content.
 
-The browser suite covers sign-in, ordinary authenticated access, policy denial, sign-out, session expiry, session-token privacy and a complete browser → BFF → backend request. New tests use When/then names and Arrange/Act/Assert sections.
+The browser suite covers registration, duplicate-account rejection, password confirmation, sign-in, ordinary authenticated access, policy denial, sign-out, session expiry, session-token privacy and a complete browser → BFF → backend request. New tests use When/then names and Arrange/Act/Assert sections.
 
 ## Structure and coding patterns
 
@@ -64,7 +64,9 @@ Use Server Components for server work and add `'use client'` where interaction r
 
 Mantine's shared theme lives in [theme.ts](theme.ts). Customize colors, typography, spacing and component defaults there. The app and Storybook both use that theme. Storybook provides light/dark controls and a keyboard toggle; the sample color-scheme component demonstrates application switching. Repodog ESLint, Prettier, Stylelint, TypeScript and test configurations enforce the repository's coding conventions.
 
-## next-box packages
+## NextBox packages
+
+NextBox is a collection of reusable packages for Next.js applications that handle common concerns such as configuration, localization, feature flags, navigation and API route composition. This starter brings them together so those foundations are ready to use.
 
 The packages are already connected in [AppProviders.tsx](app/_components/AppProviders.tsx) and the root layout. Add application configuration to those integration points rather than creating a second provider stack.
 
@@ -134,6 +136,8 @@ Start a protected route with `createApiHandler`; write shared request behavior a
 
 ## Getta and the two generated API clients
 
+Getta is a Fetch-based HTTP client for browsers and servers, with tooling that generates typed API clients from OpenAPI contracts. This starter uses it on both sides of the BFF so UI components and server handlers can call named, typed operations instead of constructing requests by hand.
+
 The request path is:
 
 ```text
@@ -188,7 +192,7 @@ The API's bearer tokens are opaque Identity tokens; NextAuth's session JWT is a 
 
 The authenticated route-group layout checks the session. The restricted page separately checks `ExampleAccess` and redirects to `/access-denied` when needed. The BFF's `withAuth` uses a private server-only session projection to obtain the access token and persist refreshed session cookies. `withPolicy` applies an optional route policy; the backend independently enforces its own policy. Return 401 for missing authentication and 403 for insufficient access.
 
-Sign-out clears the NextAuth session. The API does not expose a revocation endpoint for already-issued bearer tokens. Registration and password recovery endpoints exist in the backend contract; this starter currently provides the login/access-denied UI, not finished registration/reset-password screens.
+Sign-out clears the NextAuth session. The API does not expose a revocation endpoint for already-issued bearer tokens. Registration and password recovery endpoints exist in the backend contract; this starter provides registration, sign-in and access-denied screens; a reset-password screen is not included yet.
 
 ## Integration with the .NET kickstarter
 

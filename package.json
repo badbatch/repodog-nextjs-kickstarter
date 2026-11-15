@@ -54,7 +54,7 @@
     "test:e2e:docker": "node scripts/testE2eDocker.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:integration": "pnpm run jest --runInBand --testMatch \"<rootDir>/**/*.integration.test.ts\"",
-    "type-check": "pnpm run appsettings:types && tsc --noEmit",
+    "type-check": "pnpm run appsettings:types && tsc --noEmit --incremental false",
     "validate": "pnpm run syncpack && pnpm run build && pnpm run lint && pnpm run format && pnpm run type-check && pnpm run test"
   },
   "dependencies": {

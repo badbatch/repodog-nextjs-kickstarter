@@ -24,10 +24,32 @@ export const content = {
       title: 'Welcome to Mantine',
     },
     login: {
+      email: 'Email',
       errors: {
         invalidCredentials: 'The email or password is incorrect.',
         unavailable: 'Unable to sign in. Please try again.',
       },
+      password: 'Password',
+      register: 'Create an account',
+      registered: 'Your account has been created. Sign in to continue.',
+
+      title: 'Sign in',
+    },
+    register: {
+      confirmPassword: 'Confirm password',
+      email: 'Email',
+      errors: {
+        invalidDetails: 'Enter a valid email address and password.',
+        passwordMismatch: 'The passwords do not match.',
+        rejected:
+          'Unable to create the account. Check the password requirements, or sign in if you already have an account.',
+        unavailable: 'Unable to create an account right now. Please try again.',
+      },
+      password: 'Password',
+      passwordHelp: 'Use a strong password with uppercase and lowercase letters, a number and a symbol.',
+      signIn: 'Already have an account? Sign in',
+      submit: 'Create account',
+      title: 'Create an account',
     },
     restricted: { title: 'Restricted example' },
   },

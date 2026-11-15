@@ -33,8 +33,12 @@
     "app/api/example/restricted/route.ts",
     "app/api/example/route.ts",
     "app/layout.tsx",
+    "app/login/actions.test.ts",
     "app/login/actions.ts",
     "app/login/page.tsx",
+    "app/register/actions.test.ts",
+    "app/register/actions.ts",
+    "app/register/page.tsx",
     "appSettings/hooks.ts",
     "appSettings/index.ts",
     "appSettings/schema.ts",
@@ -61,6 +65,7 @@
     "e2e/auth.setup.ts",
     "e2e/authenticated-access.spec.ts",
     "e2e/fixtures/test.ts",
+    "e2e/registration.spec.ts",
     "e2e/session-expiry.spec.ts",
     "e2e/sign-in.spec.ts",
     "e2e/user-access.spec.ts",
@@ -177,12 +182,12 @@
         },
         {
           "file": "README.md",
-          "from": "An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, seven next-box packages, typed browser/server API clients, NextAuth authentication, policy-based access and a real Docker browser-test suite. It works with [repodog-dotnet-kickstarter](https://github.com/badbatch/repodog-dotnet-kickstarter) through a defined API contract; a different backend can implement that contract too.",
-          "to": "An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, seven next-box packages, typed browser/server API clients, NextAuth authentication and policy-based access. Configure a backend implementing the documented endpoint contract; it can be hosted independently and does not have to use .NET."
+          "from": "An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, seven NextBox packages, typed browser/server API clients, NextAuth authentication, policy-based access and a real Docker browser-test suite. It works with [repodog-dotnet-kickstarter](https://github.com/badbatch/repodog-dotnet-kickstarter) through a defined API contract; a different backend can implement that contract too.",
+          "to": "An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, seven NextBox packages, typed browser/server API clients, NextAuth authentication and policy-based access. Configure a backend implementing the documented endpoint contract; it can be hosted independently and does not have to use .NET."
         },
         {
           "file": "README.md",
-          "from": "Start the sibling .NET API using its README, or start another backend implementing the contract below:",
+          "from": "Start the sibling .NET API using [its README](https://github.com/badbatch/repodog-dotnet-kickstarter/blob/main/README.md), or start another backend implementing the contract below:",
           "to": "Start a backend implementing the contract below:"
         },
         {
