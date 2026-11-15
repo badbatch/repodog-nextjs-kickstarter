@@ -371,3 +371,11 @@ The manifest contract belongs to the Repodog CLI. In the `repodog` repository:
 - `cli/new/src/app/materializeApp/loadValidBootstrapManifestOrThrow.ts` performs runtime manifest validation.
 
 There is currently no published JSON Schema or `$schema` binding for editor completion. TypeScript definitions are checked when building the CLI; JSON files are checked by the CLI's runtime validator when generating an application. A syntactically valid JSON edit is not, by itself, evidence that a recipe will generate a working app.
+
+## Changelog
+
+Check out the [features, fixes and more](CHANGELOG.md).
+
+## License
+
+Repodog Next.js Kickstarter is [MIT Licensed](LICENSE).
