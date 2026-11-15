@@ -6,6 +6,14 @@ export const content = {
     description: 'Una plantilla para aplicaciones Next.js',
     title: 'Kickstarter',
   },
+  forms: {
+    validation: {
+      confirmPasswordRequired: 'Confirma tu contraseña.',
+      email: 'Introduce una dirección de correo válida.',
+      emailTooLong: 'Usa un máximo de 256 caracteres.',
+      passwordRequired: 'Introduce tu contraseña.',
+    },
+  },
   pages: {
     accessDenied: {
       description: 'Tu cuenta no tiene acceso a esta sección. Cierra sesión para utilizar otra cuenta.',

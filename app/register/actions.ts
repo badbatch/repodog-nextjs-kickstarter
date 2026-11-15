@@ -4,15 +4,12 @@ import { redirect } from 'next/navigation.js';
 import { z } from 'zod';
 import { loadAppSettings } from '#appSettings/index.ts';
 import { tt } from '#content/index.ts';
+import { registrationSchema } from '#features/auth/register/schema.ts';
+import { type RegistrationInput } from '#features/auth/register/types.ts';
+import { type FormActionResult } from '#libs/Forms/types.ts';
 import { createServerApiClient } from '#server/createServerApiClient.ts';
 
-const registrationSchema = z.object({
-  confirmPassword: z.string().min(1),
-  email: z.string().trim().pipe(z.email().max(256)),
-  password: z.string().min(1),
-});
-
-export const register = async (_previous: string | undefined, formData: FormData): Promise<string | undefined> => {
+export const register = async (formData: FormData): Promise<FormActionResult<RegistrationInput> | undefined> => {
   const parsed = registrationSchema.safeParse({
     confirmPassword: formData.get('confirmPassword'),
     email: formData.get('email'),
@@ -20,11 +17,7 @@ export const register = async (_previous: string | undefined, formData: FormData
   });
 
   if (!parsed.success) {
-    return tt('pages.register.errors.invalidDetails');
-  }
-
-  if (parsed.data.password !== parsed.data.confirmPassword) {
-    return tt('pages.register.errors.passwordMismatch');
+    return { fieldErrors: z.flattenError(parsed.error).fieldErrors };
   }
 
   let status: number;
@@ -40,14 +33,14 @@ export const register = async (_previous: string | undefined, formData: FormData
 
     status = response.status;
   } catch {
-    return tt('pages.register.errors.unavailable');
+    return { formError: tt('pages.register.errors.unavailable') };
   }
 
   if (status === 201) {
     redirect('/login?registered=1');
   } else if (status === 400 || status === 409) {
-    return tt('pages.register.errors.rejected');
+    return { formError: tt('pages.register.errors.rejected') };
   }
 
-  return tt('pages.register.errors.unavailable');
+  return { formError: tt('pages.register.errors.unavailable') };
 };

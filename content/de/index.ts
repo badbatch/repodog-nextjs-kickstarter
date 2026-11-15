@@ -6,6 +6,14 @@ export const content = {
     description: 'Eine Vorlage für Next.js-Anwendungen',
     title: 'Kickstarter',
   },
+  forms: {
+    validation: {
+      confirmPasswordRequired: 'Bestätigen Sie Ihr Passwort.',
+      email: 'Geben Sie eine gültige E-Mail-Adresse ein.',
+      emailTooLong: 'Verwenden Sie höchstens 256 Zeichen.',
+      passwordRequired: 'Geben Sie Ihr Passwort ein.',
+    },
+  },
   pages: {
     accessDenied: {
       description:

@@ -81,9 +81,7 @@
         "type": "object",
         "properties": {
           "email": {
-            "type": "string",
-            "maxLength": 256,
-            "format": "email"
+            "$ref": "#/components/schemas/emailFormatSchema"
           },
           "password": {
             "type": "string",
@@ -129,6 +127,11 @@
           "roles"
         ]
       },
+      "emailFormatSchema": {
+        "type": "string",
+        "format": "email",
+        "maxLength": 256
+      },
       "exampleResponseSchema": {
         "type": "object",
         "properties": {
@@ -138,29 +141,6 @@
         },
         "required": [
           "message"
-        ]
-      },
-      "registrationSchema": {
-        "type": "object",
-        "properties": {
-          "confirmPassword": {
-            "type": "string",
-            "minLength": 1
-          },
-          "email": {
-            "type": "string",
-            "maxLength": 256,
-            "format": "email"
-          },
-          "password": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "confirmPassword",
-          "email",
-          "password"
         ]
       },
       "serverApiSchema": {

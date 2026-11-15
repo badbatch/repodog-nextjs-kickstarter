@@ -1,18 +1,21 @@
 'use server';
 
 import { AuthError } from 'next-auth';
+import { z } from 'zod';
 import { signIn } from '#auth.ts';
 import { tt } from '#content/index.ts';
-import { credentialsSchema } from '#server/auth/schemas.ts';
+import { credentialsSchema } from '#features/auth/login/schema.ts';
+import { type LoginInput } from '#features/auth/login/types.ts';
+import { type FormActionResult } from '#libs/Forms/types.ts';
 
-export const login = async (_previous: string | undefined, formData: FormData): Promise<string | undefined> => {
+export const login = async (formData: FormData): Promise<FormActionResult<LoginInput> | undefined> => {
   const parsed = credentialsSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
   });
 
   if (!parsed.success) {
-    return tt('pages.login.errors.invalidCredentials');
+    return { fieldErrors: z.flattenError(parsed.error).fieldErrors };
   }
 
   try {
@@ -25,11 +28,14 @@ export const login = async (_previous: string | undefined, formData: FormData): 
     return;
   } catch (error) {
     if (error instanceof AuthError) {
-      // Leaving as to not break content path preview
-      // eslint-disable-next-line unicorn/prefer-minimal-ternary
-      return error.type === 'CredentialsSignin'
-        ? tt('pages.login.errors.invalidCredentials')
-        : tt('pages.login.errors.unavailable');
+      return {
+        // Keep literal content paths so editor previews remain available.
+        formError:
+          // eslint-disable-next-line unicorn/prefer-minimal-ternary
+          error.type === 'CredentialsSignin'
+            ? tt('pages.login.errors.invalidCredentials')
+            : tt('pages.login.errors.unavailable'),
+      };
     }
 
     throw error;

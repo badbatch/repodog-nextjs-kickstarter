@@ -54,7 +54,7 @@ describe('registration action', () => {
     const form = createForm({ email: ' new@example.com ', policies: 'ExampleAccess', roles: 'ExampleUser' });
 
     // Act / Assert
-    await expect(register(undefined, form)).rejects.toThrow('Redirected');
+    await expect(register(form)).rejects.toThrow('Redirected');
 
     expect(registerUser).toHaveBeenCalledWith({
       body: { email: 'new@example.com', password: 'SecurePassword1!' },
@@ -69,10 +69,10 @@ describe('registration action', () => {
     const form = createForm({ email: 'invalid' });
 
     // Act
-    const result = await register(undefined, form);
+    const result = await register(form);
 
     // Assert
-    expect(result).toBe(tt('pages.register.errors.invalidDetails'));
+    expect(result?.fieldErrors?.email).toEqual([tt('forms.validation.email')]);
     expect(createServerApiClient).not.toHaveBeenCalled();
   });
 
@@ -81,19 +81,24 @@ describe('registration action', () => {
     const form = createForm({ confirmPassword: 'different' });
 
     // Act
-    const result = await register(undefined, form);
+    const result = await register(form);
 
     // Assert
-    expect(result).toBe(tt('pages.register.errors.passwordMismatch'));
+    expect(result?.fieldErrors?.confirmPassword).toEqual([tt('pages.register.errors.passwordMismatch')]);
     expect(createServerApiClient).not.toHaveBeenCalled();
   });
 
   it('When required fields are absent, then the API is not called', async () => {
     // Arrange / Act
-    const result = await register(undefined, new FormData());
+    const result = await register(new FormData());
 
     // Assert
-    expect(result).toBe(tt('pages.register.errors.invalidDetails'));
+    expect(result?.fieldErrors).toEqual({
+      confirmPassword: [tt('forms.validation.confirmPasswordRequired')],
+      email: [tt('forms.validation.email')],
+      password: [tt('forms.validation.passwordRequired')],
+    });
+
     expect(createServerApiClient).not.toHaveBeenCalled();
   });
 
@@ -104,10 +109,10 @@ describe('registration action', () => {
       registerUser.mockResolvedValue({ data: { title: 'Internal error details' }, status });
 
       // Act
-      const result = await register(undefined, createForm());
+      const result = await register(createForm());
 
       // Assert
-      expect(result).toBe(tt('pages.register.errors.rejected'));
+      expect(result).toEqual({ formError: tt('pages.register.errors.rejected') });
       expect(redirect).not.toHaveBeenCalled();
     },
   );
@@ -117,10 +122,10 @@ describe('registration action', () => {
     registerUser.mockRejectedValueOnce(new Error('Connection failed'));
 
     // Act
-    const result = await register(undefined, createForm());
+    const result = await register(createForm());
 
     // Assert
-    expect(result).toBe(tt('pages.register.errors.unavailable'));
+    expect(result).toEqual({ formError: tt('pages.register.errors.unavailable') });
     expect(redirect).not.toHaveBeenCalled();
   });
 
@@ -129,10 +134,10 @@ describe('registration action', () => {
     registerUser.mockResolvedValue({ status: 500 });
 
     // Act
-    const result = await register(undefined, createForm());
+    const result = await register(createForm());
 
     // Assert
-    expect(result).toBe(tt('pages.register.errors.unavailable'));
+    expect(result).toEqual({ formError: tt('pages.register.errors.unavailable') });
     expect(redirect).not.toHaveBeenCalled();
   });
 });

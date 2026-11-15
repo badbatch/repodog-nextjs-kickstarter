@@ -1,10 +1,5 @@
 import { z } from 'zod';
 
-export const credentialsSchema = z.object({
-  email: z.string().trim().pipe(z.email().max(256)),
-  password: z.string().min(1),
-});
-
 export const tokenResponseSchema = z.object({
   accessToken: z.string().min(1),
   expiresIn: z.number().positive(),

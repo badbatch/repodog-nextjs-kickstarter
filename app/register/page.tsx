@@ -1,47 +1,103 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Alert, Button, Container, Paper, PasswordInput, Stack, TextInput, Title } from '@mantine/core';
 import { Link } from '@next-box/link-extra';
-import { type ReactNode, useActionState } from 'react';
+import { type ReactNode, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
 import { tt } from '#content/index.ts';
+import { registrationSchema } from '#features/auth/register/schema.ts';
+import { type RegistrationInput, type RegistrationOutput } from '#features/auth/register/types.ts';
 import { register } from './actions.ts';
 
 const RegisterPage = (): ReactNode => {
-  const [error, action, pending] = useActionState(register, undefined);
+  const [pending, startTransition] = useTransition();
+
+  const {
+    clearErrors,
+    formState: { errors },
+    handleSubmit,
+    register: registerField,
+    setError,
+  } = useForm<RegistrationInput, unknown, RegistrationOutput>({
+    defaultValues: { confirmPassword: '', email: '', password: '' },
+    mode: 'onTouched',
+    reValidateMode: 'onChange',
+    resolver: zodResolver(registrationSchema),
+  });
+
+  const submit = handleSubmit(values => {
+    clearErrors('root');
+
+    startTransition(async () => {
+      const formData = new FormData();
+
+      for (const [field, value] of Object.entries(values)) {
+        formData.set(field, value);
+      }
+
+      const result = await register(formData);
+
+      if (result?.fieldErrors?.email?.[0]) {
+        setError('email', { message: result.fieldErrors.email[0], type: 'server' });
+      }
+
+      if (result?.fieldErrors?.password?.[0]) {
+        setError('password', { message: result.fieldErrors.password[0], type: 'server' });
+      }
+
+      if (result?.fieldErrors?.confirmPassword?.[0]) {
+        setError('confirmPassword', { message: result.fieldErrors.confirmPassword[0], type: 'server' });
+      }
+
+      if (result?.formError) {
+        setError('root.server', { message: result.formError, type: 'server' });
+      }
+    });
+  });
 
   return (
     <Container py="xl" size={420}>
       <Paper p="xl" withBorder>
-        <form action={action}>
+        <form
+          method="post"
+          noValidate
+          onSubmit={event => {
+            void submit(event);
+          }}
+        >
           <Stack>
             <Title order={1}>{tt('pages.register.title')}</Title>
-            {error && (
+            {errors.root?.server?.message && (
               <Alert color="red" role="alert">
-                {error}
+                {errors.root.server.message}
               </Alert>
             )}
             <TextInput
               autoComplete="username"
+              error={errors.email?.message}
               label={tt('pages.register.email')}
               maxLength={256}
-              name="email"
+              {...registerField('email')}
               required
               type="email"
             />
             <PasswordInput
               autoComplete="new-password"
               description={tt('pages.register.passwordHelp')}
+              error={errors.password?.message}
               label={tt('pages.register.password')}
-              name="password"
+              {...registerField('password')}
               required
             />
             <PasswordInput
               autoComplete="new-password"
+              error={errors.confirmPassword?.message}
               label={tt('pages.register.confirmPassword')}
-              name="confirmPassword"
+              {...registerField('confirmPassword')}
               required
             />
-            <Button loading={pending} type="submit">
+            <Button disabled={pending} loading={pending} type="submit">
               {tt('pages.register.submit')}
             </Button>
             <Link disableRouterCache={false} href="/login">

@@ -21,11 +21,11 @@ const createForm = (values: Record<string, string> = {}): FormData => {
   return form;
 };
 
-const invalidPayloads: Record<string, string>[] = [
-  { email: 'invalid' },
-  { email: '' },
-  { email: `${'a'.repeat(250)}@example.com` },
-  { password: '' },
+const invalidPayloads = [
+  { field: 'email', value: 'invalid' },
+  { field: 'email', value: '' },
+  { field: 'email', value: `${'a'.repeat(250)}@example.com` },
+  { field: 'password', value: '' },
 ];
 
 describe('login action', () => {
@@ -44,7 +44,7 @@ describe('login action', () => {
     });
 
     // Act
-    const result = await login(undefined, form);
+    const result = await login(form);
 
     // Assert
     expect(result).toBeUndefined();
@@ -56,24 +56,31 @@ describe('login action', () => {
     });
   });
 
-  it.each(invalidPayloads)('When the payload is invalid (%j), then NextAuth is not called', async values => {
-    // Arrange
-    const form = createForm(values);
+  it.each(invalidPayloads)(
+    'When the payload is invalid (%j), then NextAuth is not called',
+    async ({ field, value }) => {
+      // Arrange
+      const form = createForm({ [field]: value });
 
-    // Act
-    const result = await login(undefined, form);
+      // Act
+      const result = await login(form);
 
-    // Assert
-    expect(result).toBe(tt('pages.login.errors.invalidCredentials'));
-    expect(signIn).not.toHaveBeenCalled();
-  });
+      // Assert
+      expect(result).toEqual({ fieldErrors: { [field]: expect.any(Array) } });
+      expect(signIn).not.toHaveBeenCalled();
+    },
+  );
 
   it('When required fields are absent, then NextAuth is not called', async () => {
     // Arrange / Act
-    const result = await login(undefined, new FormData());
+    const result = await login(new FormData());
 
     // Assert
-    expect(result).toBe(tt('pages.login.errors.invalidCredentials'));
+    expect(result?.fieldErrors).toEqual({
+      email: [tt('forms.validation.email')],
+      password: [tt('forms.validation.passwordRequired')],
+    });
+
     expect(signIn).not.toHaveBeenCalled();
   });
 
@@ -83,10 +90,10 @@ describe('login action', () => {
     form.set('email', new Blob(['user@example.com']), 'email.txt');
 
     // Act
-    const result = await login(undefined, form);
+    const result = await login(form);
 
     // Assert
-    expect(result).toBe(tt('pages.login.errors.invalidCredentials'));
+    expect(result?.fieldErrors?.email).toEqual([tt('forms.validation.email')]);
     expect(signIn).not.toHaveBeenCalled();
   });
 
@@ -95,10 +102,10 @@ describe('login action', () => {
     signIn.mockRejectedValueOnce(new CredentialsSignin());
 
     // Act
-    const result = await login(undefined, createForm());
+    const result = await login(createForm());
 
     // Assert
-    expect(result).toBe(tt('pages.login.errors.invalidCredentials'));
+    expect(result).toEqual({ formError: tt('pages.login.errors.invalidCredentials') });
   });
 
   it('When NextAuth reports an authentication service error, then internal details are not exposed', async () => {
@@ -106,10 +113,10 @@ describe('login action', () => {
     signIn.mockRejectedValueOnce(new AuthError('Internal authentication details'));
 
     // Act
-    const result = await login(undefined, createForm());
+    const result = await login(createForm());
 
     // Assert
-    expect(result).toBe(tt('pages.login.errors.unavailable'));
+    expect(result).toEqual({ formError: tt('pages.login.errors.unavailable') });
   });
 
   it('When NextAuth redirects after sign-in, then the redirect is allowed to propagate', async () => {
@@ -118,7 +125,7 @@ describe('login action', () => {
     signIn.mockRejectedValueOnce(redirect);
 
     // Act / Assert
-    await expect(login(undefined, createForm())).rejects.toBe(redirect);
+    await expect(login(createForm())).rejects.toBe(redirect);
   });
 
   it('When an unexpected error occurs, then it is rethrown', async () => {
@@ -127,6 +134,6 @@ describe('login action', () => {
     signIn.mockRejectedValueOnce(error);
 
     // Act / Assert
-    await expect(login(undefined, createForm())).rejects.toBe(error);
+    await expect(login(createForm())).rejects.toBe(error);
   });
 });

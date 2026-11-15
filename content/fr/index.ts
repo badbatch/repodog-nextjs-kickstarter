@@ -6,6 +6,14 @@ export const content = {
     description: 'Une base pour vos applications Next.js',
     title: 'Kickstarter',
   },
+  forms: {
+    validation: {
+      confirmPasswordRequired: 'Confirmez votre mot de passe.',
+      email: 'Saisissez une adresse e-mail valide.',
+      emailTooLong: 'Utilisez au maximum 256 caractères.',
+      passwordRequired: 'Saisissez votre mot de passe.',
+    },
+  },
   pages: {
     accessDenied: {
       description:

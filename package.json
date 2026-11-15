@@ -58,6 +58,7 @@
     "validate": "pnpm run syncpack && pnpm run build && pnpm run lint && pnpm run format && pnpm run type-check && pnpm run test"
   },
   "dependencies": {
+    "@hookform/resolvers": "^7.0.6",
     "@mantine/core": "^9.7.5",
     "@mantine/hooks": "^9.7.5",
     "@next-box/appsettings": "^0.0.10",

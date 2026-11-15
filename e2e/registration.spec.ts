@@ -46,7 +46,7 @@ test('When registration passwords do not match, then the visitor sees a validati
   await page.getByRole('button', { exact: true, name: 'Create account' }).click();
 
   // Assert
-  await expect(page.getByRole('alert').filter({ hasText: 'The passwords do not match.' })).toBeVisible();
+  await expect(page.getByText('The passwords do not match.', { exact: true })).toBeVisible();
   await expect(page).toHaveURL('/register');
 });
 

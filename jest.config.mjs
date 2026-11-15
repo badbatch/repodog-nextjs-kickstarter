@@ -11,6 +11,7 @@ export default {
     'app/**/*.{ts,tsx}',
     'components/**/*.{ts,tsx}',
     'server/**/*.{ts,tsx}',
+    'features/**/*.{ts,tsx}',
     'libs/**/*.{ts,tsx}',
     'appSettings/**/*.{ts,tsx}',
     'routeRules.ts',

@@ -53,6 +53,7 @@ The browser suite covers registration, duplicate-account rejection, password con
 | `app/(authenticated)/`                  | Pages that require sign-in; the group name is omitted from URLs.       |
 | `app/_components/AppProviders.tsx`      | Shared client providers and navigation integration.                    |
 | `components/`                           | Reusable UI, colocated styles, stories and tests.                      |
+| `features/`                             | Browser-safe feature schemas and derived form types.                   |
 | `content/`                              | Localized UI text, formatting and Markdown component mapping.          |
 | `appSettings/`, `config/`               | Typed configuration schema, defaults, hooks and JSON overrides.        |
 | `libs/ApiClient/`                       | Browser API provider/hooks and server API-client middleware.           |
@@ -177,6 +178,31 @@ export const GET = createApiHandler({
 ```
 
 The complete example files include timeout and unavailable-service handling. Keep operation names stable in the backend OpenAPI document so client methods remain predictable.
+
+## Forms and shared validation
+
+[React Hook Form](https://react-hook-form.com/get-started) manages form values, field errors and submission. [Zod](https://zod.dev/) defines the validation rules, and [`@hookform/resolvers`](https://github.com/react-hook-form/resolvers#zod) connects those schemas to React Hook Form. Mantine inputs display each field's error.
+
+Login and registration demonstrate this pattern:
+
+- Browser-safe schemas live in [features/auth/login/schema.ts](features/auth/login/schema.ts) and [features/auth/register/schema.ts](features/auth/register/schema.ts). Registration extends the credentials schema and attaches password mismatch errors to `confirmPassword`.
+- Each feature's `types.ts` derives input and output types with `z.input` and `z.output`. Keep server-only imports and API clients out of shared schema modules.
+- Pages use `useForm` with `zodResolver`, empty defaults and `mode: 'onTouched'`: validate on the first blur, then on change. After submission, `reValidateMode: 'onChange'` keeps errors current. `noValidate` disables browser validation bubbles so the localized field messages provide consistent feedback; labels and required attributes remain.
+- Server actions independently call `safeParse` with the same schema before authentication or API calls. They return typed `fieldErrors` or `formError` using [FormActionResult](libs/Forms/types.ts); pages apply these through `setError`. Backend/service failures appear in the form alert. Submissions run in a React transition, disabling the submit button while pending and preserving successful server redirects.
+- Validation messages come from `content/` in each supported language. Email addresses are trimmed and limited to 256 characters; passwords retain their exact value. Registration checks password confirmation. Password strength, account conflicts and authorization are still enforced by the API; this starter does not mirror the backend password policy in the browser.
+
+For another form, colocate its browser-safe schema and derived types under `features/`, connect the schema with `zodResolver`, and validate again in its server action. Register native-compatible Mantine inputs with `register`; use React Hook Form's `Controller` for components that need controlled values.
+
+```tsx
+const form = useForm<RegistrationInput, unknown, RegistrationOutput>({
+  defaultValues: { email: '', password: '', confirmPassword: '' },
+  mode: 'onTouched',
+  reValidateMode: 'onChange',
+  resolver: zodResolver(registrationSchema),
+});
+```
+
+See [the registration page](app/register/page.tsx) and [its server action](app/register/actions.ts) for the complete flow, including field and form errors. These interactive forms require JavaScript. They declare `method="post"` so an unhydrated submission cannot put credentials in the URL. Client validation improves feedback; the server action and API remain responsible for validating untrusted requests.
 
 ## NextAuth authentication and authorization
 

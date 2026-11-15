@@ -6,6 +6,14 @@ export const content = {
     description: 'An opinionated Next.js application starter',
     title: 'Kickstarter',
   },
+  forms: {
+    validation: {
+      confirmPasswordRequired: 'Confirm your password.',
+      email: 'Enter a valid email address.',
+      emailTooLong: 'Use no more than 256 characters.',
+      passwordRequired: 'Enter your password.',
+    },
+  },
   pages: {
     accessDenied: {
       description: 'Your account does not have access to this area. Sign out to use a different account.',

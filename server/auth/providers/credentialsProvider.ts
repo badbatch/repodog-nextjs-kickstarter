@@ -1,7 +1,8 @@
 import { CredentialsSignin } from 'next-auth';
 import Credentials, { type CredentialsConfig } from 'next-auth/providers/credentials';
 import { loadAppSettings } from '#appSettings/index.ts';
-import { credentialsSchema, currentUserSchema, tokenResponseSchema } from '#server/auth/schemas.ts';
+import { credentialsSchema } from '#features/auth/login/schema.ts';
+import { currentUserSchema, tokenResponseSchema } from '#server/auth/schemas.ts';
 import { createServerApiClient } from '#server/createServerApiClient.ts';
 
 export const authorizeCredentials: CredentialsConfig['authorize'] = async credentials => {
