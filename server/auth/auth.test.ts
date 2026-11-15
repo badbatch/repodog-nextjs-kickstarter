@@ -35,6 +35,8 @@ process.env.AUTH_URL = 'http://localhost:3000';
 const { createAuthConfig, handlers } = await import('#auth.ts');
 const { authorizeCredentials } = await import('./providers/credentialsProvider.ts');
 const { createApiHandler } = await import('#server/createApiHandler.ts');
+const { GET: ordinaryExampleRoute } = await import('#app/api/example/route.ts');
+const { GET: restrictedExampleRoute } = await import('#app/api/example/restricted/route.ts');
 
 const cookieName = 'authjs.session-token';
 const correlationId = '00000000-0000-4000-8000-000000000001';
@@ -97,8 +99,10 @@ describe('API authentication', () => {
     // Arrange
     const request = await createRequest('/api/example', tokens.expiresAt, []);
     const handler = jest.fn(() => Response.json({ ok: true }));
+
     // Act
     const response = await createApiHandler({ handler })(request, {});
+
     // Assert
     expect(response.status).toBe(200);
     expect(handler).toHaveBeenCalledTimes(1);
@@ -399,5 +403,224 @@ describe('API authentication', () => {
     // Assert
     expect(response.status).toBe(401);
     expect(handler).not.toHaveBeenCalled();
+  });
+
+  describe.each([
+    { apiPath: '/api/v1/example', handleRequest: ordinaryExampleRoute, name: 'ordinary', route: '/api/example' },
+    {
+      apiPath: '/api/v1/example/restricted',
+      handleRequest: restrictedExampleRoute,
+      name: 'restricted',
+      route: '/api/example/restricted',
+    },
+  ])('$name BFF route', ({ apiPath, handleRequest, route }) => {
+    it.each([
+      { error: new TypeError('Upstream network details'), name: 'network failure' },
+      { error: new Error('The API request timed out'), name: 'timeout' },
+    ])('When the API has a $name, then the BFF returns a safe 503 with the request ID', async ({ error }) => {
+      // Arrange
+      jest.spyOn(globalThis, 'fetch').mockRejectedValue(error);
+      const request = await createRequest(route);
+      request.headers.set('x-request-id', 'request-for-unavailable-api');
+
+      // Act
+      const response = await handleRequest(request, {});
+
+      // Assert
+      expect(response.status).toBe(503);
+
+      await expect(response.json()).resolves.toEqual({
+        error: 'The API is unavailable',
+        requestId: 'request-for-unavailable-api',
+      });
+    });
+
+    it.each([200, 403, 409])(
+      'When the API responds with %s, then the BFF forwards its status and body',
+      async status => {
+        // Arrange
+        const body = { message: 'API response' };
+
+        const fetch = jest
+          .spyOn(globalThis, 'fetch')
+          .mockImplementation(() => Promise.resolve(Response.json(body, { status })));
+
+        const request = await createRequest(route);
+
+        // Act
+        const response = await handleRequest(request, {});
+
+        // Assert
+        expect(response.status).toBe(status);
+        await expect(response.json()).resolves.toEqual(body);
+
+        expect(fetch).toHaveBeenCalledWith(
+          expect.stringContaining(apiPath),
+          expect.objectContaining({
+            headers: expect.objectContaining({ Authorization: `Bearer ${tokens.accessToken}` }),
+          }),
+        );
+      },
+    );
+  });
+
+  describe('sign-in failure paths', () => {
+    const validTokenResponse = {
+      accessToken: 'sign-in-access',
+      expiresIn: 3600,
+      refreshToken: 'sign-in-refresh',
+      tokenType: 'Bearer',
+    };
+
+    it.each([
+      { name: 'unavailable login service', respond: () => Promise.resolve(Response.json({}, { status: 503 })) },
+      {
+        name: 'malformed token response',
+        respond: () => Promise.resolve(Response.json({ accessToken: 'incomplete' })),
+      },
+      { name: 'login network failure', respond: () => Promise.reject(new TypeError('Login network failure')) },
+    ])('When there is a $name, then sign-in fails before loading a profile', async ({ respond }) => {
+      // Arrange
+      const fetch = jest.spyOn(globalThis, 'fetch').mockImplementation(respond);
+
+      // Act
+      const result = authorizeCredentials(
+        { email: 'user@example.com', password: 'Password1!' },
+        new Request('http://localhost:3000'),
+      );
+
+      // Assert
+      await expect(result).rejects.toThrow();
+      expect(fetch).not.toHaveBeenCalledWith(expect.stringContaining('/users/me'), expect.anything());
+    });
+
+    it.each([
+      { name: 'unavailable profile service', respond: () => Promise.resolve(Response.json({}, { status: 503 })) },
+      { name: 'malformed profile', respond: () => Promise.resolve(Response.json({ id: 'user-id' })) },
+      { name: 'profile network failure', respond: () => Promise.reject(new TypeError('Profile network failure')) },
+    ])(
+      'When there is a $name after login, then sign-in fails without returning an authenticated user',
+      async ({ respond }) => {
+        // Arrange
+        const fetch = jest
+          .spyOn(globalThis, 'fetch')
+          .mockImplementationOnce(() => Promise.resolve(Response.json(validTokenResponse)))
+          .mockImplementation(respond);
+
+        // Act
+        const result = authorizeCredentials(
+          { email: 'user@example.com', password: 'Password1!' },
+          new Request('http://localhost:3000'),
+        );
+
+        // Assert
+        await expect(result).rejects.toThrow();
+
+        expect(fetch).toHaveBeenNthCalledWith(
+          2,
+          expect.stringContaining('/users/me'),
+          expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer sign-in-access' }) }),
+        );
+      },
+    );
+  });
+
+  it.each([
+    {
+      name: 'malformed refresh response',
+      respond: () => Promise.resolve(Response.json({ accessToken: 'incomplete' })),
+    },
+    { name: 'refresh network failure', respond: () => Promise.reject(new TypeError('Refresh network failure')) },
+  ])(
+    'When there is a $name, then the session cookie loses API credentials and access information',
+    async ({ respond }) => {
+      // Arrange
+      jest.spyOn(globalThis, 'fetch').mockImplementation(respond);
+      const handler = jest.fn(() => Response.json({ ok: true }));
+      const request = await createRequest('/api/example', 0);
+
+      // Act
+      const response = await createApiHandler({ handler })(request, {});
+
+      const cookie = response.headers
+        .getSetCookie()
+        .map(value => value.split(';', 1)[0])
+        .join('; ');
+
+      const sessionToken = await getToken({ req: { headers: new Headers({ cookie }) }, salt: cookieName, secret });
+
+      // Assert
+      expect(response.status).toBe(401);
+      expect(handler).not.toHaveBeenCalled();
+      expect(sessionToken).toMatchObject({ error: 'RefreshTokenError', policies: [], roles: [] });
+      expect(sessionToken).not.toHaveProperty('apiTokens');
+    },
+  );
+
+  it('When the profile returned after refresh is malformed, then credentials and access information are cleared', async () => {
+    // Arrange
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockImplementationOnce(() =>
+        Promise.resolve(
+          Response.json({
+            accessToken: 'replacement-access',
+            expiresIn: 3600,
+            refreshToken: 'replacement-refresh',
+            tokenType: 'Bearer',
+          }),
+        ),
+      )
+      .mockImplementation(() => Promise.resolve(Response.json({ id: 'user-id' })));
+
+    const handler = jest.fn(() => Response.json({ ok: true }));
+    const request = await createRequest('/api/example', 0);
+
+    // Act
+    const response = await createApiHandler({ handler })(request, {});
+
+    const cookie = response.headers
+      .getSetCookie()
+      .map(value => value.split(';', 1)[0])
+      .join('; ');
+
+    const sessionToken = await getToken({ req: { headers: new Headers({ cookie }) }, salt: cookieName, secret });
+
+    // Assert
+    expect(response.status).toBe(401);
+    expect(handler).not.toHaveBeenCalled();
+    expect(sessionToken).toMatchObject({ error: 'RefreshTokenError', policies: [], roles: [] });
+    expect(sessionToken).not.toHaveProperty('apiTokens');
+  });
+
+  it('When valid API tokens lack access information, then the profile is loaded without refreshing the tokens', async () => {
+    // Arrange
+    const fetch = jest.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(Response.json(profile)));
+    const config = await createAuthConfig();
+    const jwt = config.callbacks?.jwt;
+    assert.ok(jwt, 'JWT callback is missing');
+
+    // Act
+    const result = await jwt({
+      account: { provider: 'credentials', providerAccountId: 'user-id', type: 'credentials' },
+      token: { apiTokens: tokens, correlationId },
+      user: { ...profile, apiTokens: tokens },
+    });
+
+    // Assert
+    expect(result).toMatchObject({
+      apiTokens: tokens,
+      correlationId,
+      policies: profile.policies,
+      roles: profile.roles,
+      sub: profile.id,
+    });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/users/me'),
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: `Bearer ${tokens.accessToken}` }) }),
+    );
   });
 });

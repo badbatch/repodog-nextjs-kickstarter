@@ -115,4 +115,141 @@ describe('useApi error handling', () => {
     expect(result.current.isError).toBe(false);
     expect(result.current.isLoading).toBe(false);
   });
+
+  it('When an older request succeeds after the latest request, then its result does not replace the latest data', async () => {
+    // Arrange
+    const older = Promise.withResolvers<object>();
+    const latest = Promise.withResolvers<object>();
+
+    const request = jest
+      .fn<() => Promise<object>>()
+      .mockReturnValueOnce(older.promise)
+      .mockReturnValueOnce(latest.promise);
+
+    const { result } = renderHook(() => useApi(request));
+    const executions: Promise<unknown>[] = [];
+
+    act(() => {
+      executions.push(result.current.execute(), result.current.execute());
+    });
+
+    // Act
+    await act(async () => {
+      latest.resolve({ id: 'latest' });
+      await latest.promise;
+    });
+
+    await act(async () => {
+      older.resolve({ id: 'older' });
+      await Promise.all(executions);
+    });
+
+    // Assert
+    expect(result.current.data).toEqual({ id: 'latest' });
+    expect(result.current.isSuccess).toBe(true);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBeUndefined();
+  });
+
+  it('When an older request fails after the latest request succeeds, then its error does not replace success or invoke onError', async () => {
+    // Arrange
+    const older = Promise.withResolvers<object>();
+    const latest = Promise.withResolvers<object>();
+
+    const request = jest
+      .fn<() => Promise<object>>()
+      .mockReturnValueOnce(older.promise)
+      .mockReturnValueOnce(latest.promise);
+
+    const onError = jest.fn<(error: Error) => void>();
+    const { result } = renderHook(() => useApi(request, { onError }));
+    const executions: Promise<unknown>[] = [];
+
+    act(() => {
+      executions.push(result.current.execute(), result.current.execute());
+    });
+
+    // Act
+    await act(async () => {
+      latest.resolve({ id: 'latest' });
+      await latest.promise;
+    });
+
+    await act(async () => {
+      older.reject(new Error('Stale failure'));
+      await Promise.all(executions);
+    });
+
+    // Assert
+    expect(result.current.data).toEqual({ id: 'latest' });
+    expect(result.current.isSuccess).toBe(true);
+    expect(result.current.isError).toBe(false);
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it('When an older request fails while the latest request is pending, then loading continues without displaying the stale error', async () => {
+    // Arrange
+    const older = Promise.withResolvers<object>();
+    const latest = Promise.withResolvers<object>();
+
+    const request = jest
+      .fn<() => Promise<object>>()
+      .mockReturnValueOnce(older.promise)
+      .mockReturnValueOnce(latest.promise);
+
+    const onError = jest.fn<(error: Error) => void>();
+    const { result } = renderHook(() => useApi(request, { onError }));
+    const executions: Promise<unknown>[] = [];
+
+    act(() => {
+      executions.push(result.current.execute(), result.current.execute());
+    });
+
+    // Act
+    await act(async () => {
+      older.reject(new Error('Stale failure'));
+      await executions[0];
+    });
+
+    // Assert
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.error).toBeUndefined();
+    expect(onError).not.toHaveBeenCalled();
+
+    // Act
+    await act(async () => {
+      latest.resolve({ id: 'latest' });
+      await Promise.all(executions);
+    });
+
+    // Assert
+    expect(result.current.data).toEqual({ id: 'latest' });
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('When a reset request later succeeds, then the initial state is preserved', async () => {
+    // Arrange
+    const pending = Promise.withResolvers<object>();
+    const request = jest.fn<() => Promise<object>>().mockReturnValue(pending.promise);
+    const { result } = renderHook(() => useApi(request));
+    const executions: Promise<unknown>[] = [];
+
+    act(() => {
+      executions.push(result.current.execute());
+      result.current.reset();
+    });
+
+    // Act
+    await act(async () => {
+      pending.resolve({ id: 'late' });
+      await Promise.all(executions);
+    });
+
+    // Assert
+    expect(result.current.data).toBeUndefined();
+    expect(result.current.error).toBeUndefined();
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isSuccess).toBe(false);
+    expect(result.current.isError).toBe(false);
+  });
 });
