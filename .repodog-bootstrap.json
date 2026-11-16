@@ -235,7 +235,7 @@
         {
           "file": "README.md",
           "from": "## GitHub Actions\n\nEach repository validates its own code before running the shared E2E workflow in this repository. The E2E job uses the caller's merge commit and tries the same source branch in the counterpart. If absent, it uses `E2E_API_FALLBACK_REF` here or `E2E_APP_FALLBACK_REF` in the API repository; unset variables use the counterpart's default branch. Checkout uses resolved commit SHAs.\n\nConfigure `CROSS_REPO_READ_TOKEN` in both callers with read-only Contents access to both repositories, and permit the API repository to call this repository's reusable workflow. The workflow must exist on the ref used by the API caller. Fork PRs do not receive repository secrets. Reports are uploaded as artifacts; E2E credentials and database state are disposable.\n\n",
-          "to": "## GitHub Actions\n\nThe PR workflow validates this application and runs server integration tests. It does not check out another repository or require a cross-repository token. Browser tests can run separately against a compatible API.\n"
+          "to": "## GitHub Actions\n\nThe PR workflow validates this application and runs server integration tests. It does not check out another repository or require a cross-repository token. Browser tests can run separately against a compatible API.\n\n"
         }
       ]
     }
