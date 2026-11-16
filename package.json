@@ -89,7 +89,7 @@
     "@playwright/test": "^1.65.1",
     "@repodog/cli": "^1.7.10",
     "@repodog/commitlint-config": "^21.0.4",
-    "@repodog/eslint-config": "^9.0.37",
+    "@repodog/eslint-config": "^9.0.38",
     "@repodog/eslint-config-jest": "^9.0.12",
     "@repodog/eslint-config-playwright": "^9.0.11",
     "@repodog/eslint-config-react": "^9.0.13",
