@@ -17,7 +17,7 @@ afterAll(() => {
 });
 
 describe('Browser telemetry BFF route', () => {
-  it('When concurrent telemetry requests report a browser request ID, then each log retains its own server IDs', async () => {
+  it('When concurrent telemetry requests report stacks, then each log retains its own stack and request IDs', async () => {
     // Arrange
     const records: LogRecord[] = [];
 
@@ -33,17 +33,21 @@ describe('Browser telemetry BFF route', () => {
     const browserRequestId = crypto.randomUUID();
 
     const requests = await Promise.all(
-      ['first', 'second'].map(async event => {
+      ['first', 'second'].map(async requestName => {
         const request = await createAuthenticatedApiRequest('/api/telemetry/client', {
           headers: {
             'content-type': 'application/json',
-            'x-correlation-id': `correlation-${event}`,
-            'x-request-id': `request-${event}`,
+            'x-correlation-id': `correlation-${requestName}`,
+            'x-request-id': `request-${requestName}`,
           },
         });
 
         return new NextRequest(request, {
-          body: JSON.stringify({ message: `Browser warning ${event}`, requestId: browserRequestId }),
+          body: JSON.stringify({
+            message: `Browser warning ${requestName}`,
+            requestId: browserRequestId,
+            stack: `Error: Browser warning ${requestName}\n    at loadRecords`,
+          }),
           method: 'POST',
         });
       }),
@@ -63,12 +67,13 @@ describe('Browser telemetry BFF route', () => {
 
     expect(records.map(record => record.properties)).toEqual(
       expect.arrayContaining(
-        ['first', 'second'].map(event => ({
+        ['first', 'second'].map(requestName => ({
           browserRequestId,
-          correlationId: `correlation-${event}`,
-          message: `Browser warning ${event}`,
-          requestId: `request-${event}`,
+          correlationId: `correlation-${requestName}`,
+          message: `Browser warning ${requestName}`,
+          requestId: `request-${requestName}`,
           source: 'browser',
+          stack: `Error: Browser warning ${requestName}\n    at loadRecords`,
         })),
       ),
     );

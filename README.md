@@ -152,13 +152,15 @@ For Docker Compose, set the same variables in the shell or the Compose `.env` fi
 
 The logger supplied by [createApiHandler.ts](server/createApiHandler.ts) attaches `requestId` and `correlationId` to BFF route logs. For example, a handler that destructures `logger` from its context can call `logger.info('Example records loaded')`.
 
-[Browser instrumentation](instrumentation-client.ts) forwards warnings and higher from the `application.browser` category. The [telemetry route](app/api/telemetry/client/route.ts) requires sign-in and accepts the rendered message and an optional request ID. It logs that ID as `browserRequestId` alongside the telemetry POST's own IDs. To add a browser log, get a logger for that category and log from a client event handler or async callback. Keep log messages free of credentials and customer data.
+[Browser instrumentation](instrumentation-client.ts) forwards warnings and higher from the `application.browser` category. The [telemetry route](app/api/telemetry/client/route.ts) requires sign-in and accepts the rendered message, an optional request ID, and an optional stack trace. It logs that ID as `browserRequestId` alongside the telemetry POST's own IDs and preserves the stack trace as a separate `stack` field. To add a browser log, get a logger for that category and log from a client event handler or async callback. Keep log messages free of credentials and customer data.
 
 ```ts
 import { getLogger } from '@next-box/logging';
 
 const logger = getLogger(['application', 'browser']);
-logger.warn('Could not load the example');
+const reportError = (error: Error): void => {
+  logger.error('{message}', { message: error.message, stack: error.stack });
+};
 ```
 
 ## Getta and the two generated API clients
