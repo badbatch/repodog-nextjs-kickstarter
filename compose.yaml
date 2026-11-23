@@ -11,6 +11,8 @@ services:
       HOSTNAME: 0.0.0.0
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: '1'
+      OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: ${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:-}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-repodog-nextjs-kickstarter}
       PORT: 3000
     extra_hosts:
       - host.docker.internal:host-gateway

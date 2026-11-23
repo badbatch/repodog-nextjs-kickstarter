@@ -1,108 +1,21 @@
 /** @jest-environment node */
-import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { NextRequest } from 'next/server.js';
-import { encode } from 'next-auth/jwt';
-import assert from 'node:assert/strict';
-import { type IncomingHttpHeaders, createServer } from 'node:http';
-import { createRequire } from 'node:module';
-import { type AppSettingsConfig } from '#appSettings/schema.ts';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
+import { createAuthenticatedApiRequest, setupApiRouteTestEnvironment } from '#__testUtils__/apiRouteFixtures.ts';
+import { createApiTransportFixture } from '#__testUtils__/createApiTransportFixture.ts';
 
-const require = createRequire(import.meta.url);
-let requests: { headers: IncomingHttpHeaders; url: string | undefined }[] = [];
-const secret = 'integration-test-secret';
-const originalSecret = process.env.AUTH_SECRET;
-const originalUrl = process.env.AUTH_URL;
-
-const settings = {
-  Application: { Environment: 'test', Name: 'Kickstarter' },
-  Bff: { BaseUrl: '/api' },
-  Server: {
-    Api: { BaseUrl: 'http://127.0.0.1', TimeoutMs: 5000 },
-    Auth: { RefreshBufferSeconds: 30, SessionMaxAgeSeconds: 3600 },
-  },
-} satisfies AppSettingsConfig;
-
-jest.unstable_mockModule(
-  require.resolve('server-only', { paths: [require.resolve('@next-box/route-handler')] }),
-  () => ({}),
-);
-
-jest.unstable_mockModule('#appSettings/index.ts', () => ({
-  loadAppSettings: () => Promise.resolve(settings),
-}));
-
-process.env.AUTH_SECRET = secret;
-process.env.AUTH_URL = 'http://localhost:3000';
-
+const transport = createApiTransportFixture();
+const { requests } = transport;
+const restoreEnvironment = setupApiRouteTestEnvironment(transport.settings);
 const { createServerApiClient } = await import('./createServerApiClient.ts');
 const { GET } = await import('#app/api/example/route.ts');
+const { GET: getRestrictedExample } = await import('#app/api/example/restricted/route.ts');
 
-const profile = {
-  email: 'privileged@example.invalid',
-  id: 'privileged',
-  policies: ['ExampleAccess'],
-  roles: ['ExampleUser'],
-  userName: 'ExampleUser',
-};
-
-const server = createServer((request, response) => {
-  requests = [...requests, { headers: request.headers, url: request.url }];
-  response.setHeader('Content-Type', 'application/json');
-
-  if (request.url === '/api/v1/auth/refresh') {
-    response.end(
-      JSON.stringify({
-        accessToken: 'refreshed-access-token',
-        expiresIn: 3600,
-        refreshToken: 'refreshed-refresh-token',
-        tokenType: 'Bearer',
-      }),
-    );
-
-    return;
-  }
-
-  response.end(JSON.stringify(request.url === '/api/v1/users/me' ? profile : { message: 'Hello from the API.' }));
-});
-
-beforeAll(async () => {
-  await new Promise<void>((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(0, '127.0.0.1', resolve);
-  });
-
-  const address = server.address();
-  assert.ok(address && typeof address !== 'string');
-  settings.Server.Api.BaseUrl = `http://127.0.0.1:${String(address.port)}`;
-});
-
-beforeEach(() => {
-  requests = [];
-});
+beforeAll(transport.start);
+beforeEach(transport.clearRequests);
 
 afterAll(async () => {
-  await new Promise<void>((resolve, reject) =>
-    server.close(error => {
-      if (error) {
-        if (server.listening) reject(error);
-        else resolve();
-      } else {
-        resolve();
-      }
-    }),
-  );
-
-  if (originalSecret === undefined) {
-    delete process.env.AUTH_SECRET;
-  } else {
-    process.env.AUTH_SECRET = originalSecret;
-  }
-
-  if (originalUrl === undefined) {
-    delete process.env.AUTH_URL;
-  } else {
-    process.env.AUTH_URL = originalUrl;
-  }
+  restoreEnvironment();
+  await transport.close();
 });
 
 describe('Given the server API client and a real HTTP transport', () => {
@@ -147,23 +60,9 @@ describe('Given the server API client and a real HTTP transport', () => {
 
   it('When a BFF request requires token refresh, then refreshed credentials and incoming IDs reach the API', async () => {
     // Arrange
-    const token = await encode({
-      salt: 'authjs.session-token',
-      secret,
-      token: {
-        apiTokens: { accessToken: 'expired-token', expiresAt: Date.now() - 1000, refreshToken: 'refresh-token' },
-        policies: profile.policies,
-        roles: profile.roles,
-        sub: 'privileged',
-      },
-    });
-
-    const request = new NextRequest('http://localhost:3000/api/example', {
-      headers: {
-        cookie: `authjs.session-token=${token}`,
-        'x-correlation-id': 'browser-session',
-        'x-request-id': 'browser-request',
-      },
+    const request = await createAuthenticatedApiRequest('/api/example', {
+      expiresAt: Date.now() - 1000,
+      headers: { 'x-correlation-id': 'browser-session', 'x-request-id': 'browser-request' },
     });
 
     // Act
@@ -171,9 +70,7 @@ describe('Given the server API client and a real HTTP transport', () => {
 
     // Assert
     expect(response.status).toBe(200);
-
     expect(requests.map(call => call.url)).toEqual(['/api/v1/auth/refresh', '/api/v1/users/me', '/api/v1/example']);
-
     expect(requests[1]?.headers.authorization).toBe('Bearer refreshed-access-token');
 
     expect(requests[2]?.headers).toEqual(
@@ -185,5 +82,37 @@ describe('Given the server API client and a real HTTP transport', () => {
     );
 
     expect(response.headers.get('set-cookie')).toContain('authjs.session-token=');
+  });
+
+  it('When a server client receives an API session, then it forwards the bearer token and correlation ID', async () => {
+    // Arrange
+    const client = await createServerApiClient({
+      session: {
+        apiAccessToken: 'session-token',
+        correlationId: 'session-id',
+        expires: new Date().toISOString(),
+        user: { id: 'user-id', policies: [], roles: [] },
+      },
+    });
+
+    // Act
+    await client.getExample();
+
+    // Assert
+    expect(requests[0]?.headers).toEqual(
+      expect.objectContaining({ authorization: 'Bearer session-token', 'x-correlation-id': 'session-id' }),
+    );
+  });
+
+  it('When a session lacks the example policy, then the restricted route rejects it before calling the API', async () => {
+    // Arrange
+    const request = await createAuthenticatedApiRequest('/api/example/restricted', { policies: [] });
+
+    // Act
+    const response = await getRestrictedExample(request, {});
+
+    // Assert
+    expect(response.status).toBe(403);
+    expect(requests).toHaveLength(0);
   });
 });

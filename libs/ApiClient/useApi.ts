@@ -1,9 +1,10 @@
 import { useCallback, useRef, useState } from 'react';
 import { assertApiAccess } from './ApiAccessError.ts';
-import { type ApiResult, type ApiState, type UseApiOptions, type UseApiResult } from './types.ts';
+import { ApiResponseError } from './ApiResponseError.ts';
+import { type ApiResponse, type ApiResult, type ApiState, type UseApiOptions, type UseApiResult } from './types.ts';
 
 export const useApi = <T, TArgs extends unknown[]>(
-  request: (...args: TArgs) => Promise<T>,
+  request: (...args: TArgs) => Promise<ApiResponse<T>>,
   { onError }: UseApiOptions = {},
 ): UseApiResult<T, TArgs> => {
   const [state, setState] = useState<ApiState<T>>({
@@ -41,8 +42,14 @@ export const useApi = <T, TArgs extends unknown[]>(
       }));
 
       try {
-        const data = await request(...args);
-        assertApiAccess(data);
+        const response = await request(...args);
+        assertApiAccess(response);
+
+        if (!response.ok) {
+          throw new ApiResponseError(response.status, response.statusText, response.data);
+        }
+
+        const { data } = response;
 
         if (executionIdRef.current === id) {
           setState({

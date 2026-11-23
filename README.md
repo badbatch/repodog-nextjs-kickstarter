@@ -1,6 +1,6 @@
 # Repodog Next.js Kickstarter
 
-An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, seven NextBox packages, typed browser/server API clients, NextAuth authentication, policy-based access and a real Docker browser-test suite. It works with [repodog-dotnet-kickstarter](https://github.com/badbatch/repodog-dotnet-kickstarter) through a defined API contract; a different backend can implement that contract too.
+An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, eight NextBox packages, typed browser/server API clients, NextAuth authentication, structured logging, policy-based access and a real Docker browser-test suite. It works with [repodog-dotnet-kickstarter](https://github.com/badbatch/repodog-dotnet-kickstarter) through a defined API contract; a different backend can implement that contract too.
 
 ## Install
 
@@ -53,7 +53,7 @@ The browser suite covers registration, duplicate-account rejection, password con
 | `app/(authenticated)/`                  | Pages that require sign-in; the group name is omitted from URLs.       |
 | `app/_components/AppProviders.tsx`      | Shared client providers and navigation integration.                    |
 | `components/`                           | Reusable UI, colocated styles, stories and tests.                      |
-| `features/`                             | Browser-safe feature schemas and derived form types.                   |
+| `features/`                             | Feature schemas, derived form types and shared server operations.      |
 | `content/`                              | Localized UI text, formatting and Markdown component mapping.          |
 | `appSettings/`, `config/`               | Typed configuration schema, defaults, hooks and JSON overrides.        |
 | `libs/ApiClient/`                       | Browser API provider/hooks and server API-client middleware.           |
@@ -64,6 +64,8 @@ The browser suite covers registration, duplicate-account rejection, password con
 Use Server Components for server work and add `'use client'` where interaction requires it. Keep credentials and backend calls in server code. The `#` import alias resolves from the repository root. Put display text in `content/`, reuse named exports and colocate component-specific CSS rather than scattering global styles.
 
 Mantine's shared theme lives in [theme.ts](theme.ts). Customize colors, typography, spacing and component defaults there. The app and Storybook both use that theme. Storybook provides light/dark controls and a keyboard toggle; the sample color-scheme component demonstrates application switching. Repodog ESLint, Prettier, Stylelint, TypeScript and test configurations enforce the repository's coding conventions.
+
+The authenticated layout uses [DashboardShell](components/DashboardShell/DashboardShell.tsx) for responsive, policy-aware navigation. The restricted page uses [PageLayout](components/PageLayout/PageLayout.tsx) and [RecordValues](components/RecordValues/RecordValues.tsx) to render server-loaded data. See the [RecordTable stories](components/RecordTable/RecordTable.stories.tsx) for searchable, paginated, selectable sample records.
 
 ## NextBox packages
 
@@ -127,13 +129,37 @@ Add or refine a route rule when introducing a page whose label cannot be derived
 
 ### `@next-box/link-extra`: consistent navigation
 
-`LinkProvider` combines Next.js navigation with Mantine `Anchor` and the shared loading indicator. Use the package's `Link` for navigation that should participate in those behaviors. The provider uses a 500 ms loading threshold, so short transitions do not flash a loading bar. The package also supports router-cache bypass through `disableRouterCache`; inspect that setting when deciding whether a route should reuse client navigation state.
+`LinkProvider` combines Next.js navigation with Mantine `Anchor` and the shared loading indicator. Use the package's `Link` for navigation that should participate in those behaviors. The provider uses a 500 ms loading threshold, so short transitions do not flash a loading bar. Links use Next.js router caching by default.
 
 ### `@next-box/route-handler`: typed BFF middleware
 
-[createApiHandler.ts](server/createApiHandler.ts) uses the package's handler factory and middleware composition to supply typed context to BFF handlers. The chain adds request/correlation IDs, authenticates, optionally checks a policy, then supplies an authenticated backend client. These are route-handler middleware functions, separate from Next.js request interception conventions.
+[createApiHandler.ts](server/createApiHandler.ts) uses the package's handler factory and middleware composition to supply typed context to BFF handlers. The chain adds request and correlation IDs, binds them to a logger, authenticates, optionally checks a policy, and supplies an authenticated backend client. These are route-handler middleware functions, separate from Next.js request interception conventions.
 
 Start a protected route with `createApiHandler`; write shared request behavior as `createMiddleware` functions rather than repeating token handling in every route. Authentication calls use the server client directly because sign-in cannot depend on an authenticated BFF route.
+
+The [shared example operation](features/example/getExample.ts) validates its input and response and returns typed results. If the restricted page has no usable API access token, its browser fallback calls the BFF so refresh can persist the session cookie. Both the BFF and the [restricted Server Component](<app/(authenticated)/restricted/page.tsx>) call it directly after enforcing their access policy.
+
+### `@next-box/logging` for structured application logs
+
+[Server instrumentation](instrumentation.ts) initializes the shared NextBox logger. Server logs go to stdout as JSON unless an OpenTelemetry Collector endpoint is configured. Set the following in `.env.local` when running the app on the host with a Collector listening on port 4318.
+
+```dotenv
+OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://localhost:4318/v1/logs
+OTEL_SERVICE_NAME=repodog-nextjs-kickstarter
+```
+
+For Docker Compose, set the same variables in the shell or the Compose `.env` file and use an endpoint reachable from the app container. The Collector controls where it sends the logs. If the Collector forwards to Loki, use `{service_name="repodog-nextjs-kickstarter"}` in Grafana Explore with the service name you configured.
+
+The logger supplied by [createApiHandler.ts](server/createApiHandler.ts) attaches `requestId` and `correlationId` to BFF route logs. For example, a handler that destructures `logger` from its context can call `logger.info('Example records loaded')`.
+
+[Browser instrumentation](instrumentation-client.ts) forwards warnings and higher from the `application.browser` category. The [telemetry route](app/api/telemetry/client/route.ts) requires sign-in and accepts the rendered message and an optional request ID. It logs that ID as `browserRequestId` alongside the telemetry POST's own IDs. To add a browser log, get a logger for that category and log from a client event handler or async callback. Keep log messages free of credentials and customer data.
+
+```ts
+import { getLogger } from '@next-box/logging';
+
+const logger = getLogger(['application', 'browser']);
+logger.warn('Could not load the example');
+```
 
 ## Getta and the two generated API clients
 
@@ -161,9 +187,9 @@ pnpm generate
 
 For a BFF change, add the route and its response schema in [bff/schemas.ts](bff/schemas.ts), then add the `@response` annotation used by the existing example handlers. [openapi-gen.config.ts](openapi-gen.config.ts) controls route/schema discovery, error responses and the Scalar UI at `/api-docs`. The browser contract describes BFF operations, not the backend's full API.
 
-[createServerApiClient.ts](server/createServerApiClient.ts) reads the private API base URL and creates the backend client. Outside authenticated middleware, pass authorization headers explicitly and provide a timeout signal where appropriate. [withApiClient.ts](libs/ApiClient/withApiClient.ts) adds the access token and IDs for protected BFF requests. Header factories resolve per outgoing request; explicit caller request IDs override the default generated ID.
+[createServerApiClient.ts](server/createServerApiClient.ts) reads the private API base URL and creates the backend client. Getta applies `Server.Api.TimeoutMs` and uses `no-store` for backend fetches. Server Components can pass a private API session to forward its bearer token and correlation ID. [withApiClient.ts](libs/ApiClient/withApiClient.ts) adds the access token and IDs for protected BFF requests. Header factories resolve per outgoing request; explicit caller request IDs override the default generated ID.
 
-Browser components use `useApiClient()` and `useApi(request, { onError })`. The latter supplies `execute`, loading/error/success state and a reset operation. Its error callback keeps navigation decisions in the consuming UI. A 403 becomes `ApiAccessError`; other HTTP statuses still need appropriate handling. See [ExamplePanel.tsx](components/ExamplePanel/ExamplePanel.tsx) for a working example.
+Browser components use `useApiClient()` and `useApi(request, { onError })`. The latter supplies `execute`, loading/error/success state and a reset operation. Its error callback keeps navigation decisions in the consuming UI. Success exposes the response body as `data`. A 403 becomes `ApiAccessError`, and other non-success responses become `ApiResponseError` with the HTTP status and response body. See [ExamplePanel.tsx](components/ExamplePanel/ExamplePanel.tsx) for a working example.
 
 To add an authenticated BFF operation, follow [the ordinary example route](app/api/example/route.ts). To add policy enforcement, follow [the restricted route](app/api/example/restricted/route.ts):
 
@@ -216,7 +242,7 @@ The root [auth.ts](auth.ts) re-exports [server/auth/auth.ts](server/auth/auth.ts
 
 The API's bearer tokens are opaque Identity tokens; NextAuth's session JWT is a separate format and responsibility. `AUTH_SECRET` protects the session. Configure the session lifetime through `Server.Auth.SessionMaxAgeSeconds` (default eight hours), refresh buffer through `Server.Auth.RefreshBufferSeconds` (30 seconds), and request timeout through `Server.Api.TimeoutMs` (10 seconds).
 
-The authenticated route-group layout checks the session. The restricted page separately checks `ExampleAccess` and redirects to `/access-denied` when needed. The BFF's `withAuth` uses a private server-only session projection to obtain the access token and persist refreshed session cookies. `withPolicy` applies an optional route policy; the backend independently enforces its own policy. Return 401 for missing authentication and 403 for insufficient access.
+The authenticated route-group layout checks the session. Server Components read it without rotating refresh tokens, since they cannot write the updated session cookie. The restricted page separately checks `ExampleAccess` and redirects to `/access-denied` when needed. The BFF's `withAuth` uses a private server-only session projection to obtain the access token and persist refreshed session cookies. `withPolicy` applies an optional route policy; the backend independently enforces its own policy. Return 401 for missing authentication and 403 for insufficient access.
 
 Sign-out clears the NextAuth session. The API does not expose a revocation endpoint for already-issued bearer tokens. Registration and password recovery endpoints exist in the backend contract; this starter provides registration, sign-in and access-denied screens; a reset-password screen is not included yet.
 

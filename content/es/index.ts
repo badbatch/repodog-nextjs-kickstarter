@@ -14,16 +14,18 @@ export const content = {
       passwordRequired: 'Introduce tu contraseña.',
     },
   },
+  navigation: { breadcrumb: 'Ruta de navegación', home: 'Inicio', navigation: 'Navegación' },
   pages: {
     accessDenied: {
       description: 'Tu cuenta no tiene acceso a esta sección. Cierra sesión para utilizar otra cuenta.',
       title: 'Acceso denegado',
     },
     example: {
-      action: 'Load API example',
-      success: 'The API request succeeded.',
-      title: 'API example',
-      unavailable: 'The API request failed.',
+      action: 'Cargar ejemplo de la API',
+      message: 'Mensaje',
+      success: 'La solicitud a la API se completó correctamente.',
+      title: 'Ejemplo de la API',
+      unavailable: 'La solicitud a la API falló.',
     },
     home: {
       description:
@@ -59,6 +61,20 @@ export const content = {
       submit: 'Crear cuenta',
       title: 'Crear una cuenta',
     },
-    restricted: { title: 'Restricted example' },
+    restricted: { title: 'Ejemplo de acceso restringido' },
+  },
+  records: {
+    clearSelection: 'Borrar selección',
+    empty: 'Todavía no hay registros.',
+    noMatches: 'No hay resultados para esta búsqueda.',
+    pageSize: 'Filas por página',
+    pagination: 'Páginas de registros',
+    record: 'registro',
+    records: 'registros',
+    search: 'Buscar registros',
+    selectRow: 'Seleccionar fila',
+    selectVisible: 'Seleccionar filas visibles',
+    selected: 'seleccionados',
+    view: 'Ver',
   },
 } as const;

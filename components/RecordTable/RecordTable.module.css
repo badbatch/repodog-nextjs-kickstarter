@@ -1,0 +1,61 @@
+.toolbar {
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.viewport {
+  max-height: 60vh;
+  overflow: auto;
+  overscroll-behavior: auto;
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: -2px;
+  }
+}
+
+.header {
+  z-index: 2;
+  white-space: nowrap;
+  background: var(--mantine-color-body);
+  box-shadow: 0 1px 0 var(--mantine-color-default-border);
+}
+
+.row {
+  --record-row-background: var(--mantine-color-body);
+
+  background: var(--record-row-background);
+  transition: background-color 120ms ease;
+
+  &[data-selected] {
+    --record-row-background: light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-5));
+  }
+
+  tbody &:hover {
+    --record-row-background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+  }
+
+  tbody &[data-selected]:hover {
+    --record-row-background: light-dark(var(--mantine-color-blue-1), var(--mantine-color-dark-4));
+  }
+}
+
+.cell {
+  white-space: nowrap;
+}
+
+.selectionColumn {
+  width: 44px;
+}
+
+.footer {
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+.stickyColumn {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: var(--record-row-background, var(--mantine-color-body));
+  box-shadow: inset 1px 0 0 light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-3));
+  transition: background-color 120ms ease;
+}

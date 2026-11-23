@@ -14,6 +14,7 @@ export const content = {
       passwordRequired: 'Saisissez votre mot de passe.',
     },
   },
+  navigation: { breadcrumb: 'Fil d’Ariane', home: 'Accueil', navigation: 'Navigation' },
   pages: {
     accessDenied: {
       description:
@@ -21,10 +22,11 @@ export const content = {
       title: 'Accès refusé',
     },
     example: {
-      action: 'Load API example',
-      success: 'The API request succeeded.',
-      title: 'API example',
-      unavailable: 'The API request failed.',
+      action: 'Charger l’exemple d’API',
+      message: 'Message',
+      success: 'La requête API a réussi.',
+      title: 'Exemple d’API',
+      unavailable: 'La requête API a échoué.',
     },
     home: {
       description:
@@ -60,6 +62,20 @@ export const content = {
       submit: 'Créer le compte',
       title: 'Créer un compte',
     },
-    restricted: { title: 'Restricted example' },
+    restricted: { title: 'Exemple à accès restreint' },
+  },
+  records: {
+    clearSelection: 'Effacer la sélection',
+    empty: 'Aucun enregistrement.',
+    noMatches: 'Aucun résultat pour cette recherche.',
+    pageSize: 'Lignes par page',
+    pagination: 'Pages de résultats',
+    record: 'enregistrement',
+    records: 'enregistrements',
+    search: 'Rechercher',
+    selectRow: 'Sélectionner la ligne',
+    selectVisible: 'Sélectionner les lignes visibles',
+    selected: 'sélectionnés',
+    view: 'Voir',
   },
 } as const;

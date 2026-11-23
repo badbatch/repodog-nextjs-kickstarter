@@ -7,8 +7,8 @@ export class ApiAccessError extends Error {
   }
 }
 
-export const assertApiAccess = (result: unknown): void => {
-  if (result instanceof Response && result.status === 403) {
+export const assertApiAccess = (result: Pick<Response, 'status'>): void => {
+  if (result.status === 403) {
     throw new ApiAccessError();
   }
 };

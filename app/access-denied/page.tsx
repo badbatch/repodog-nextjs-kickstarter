@@ -1,12 +1,12 @@
 import { Button, Container, Paper, Stack, Text, Title } from '@mantine/core';
 import { redirect } from 'next/navigation.js';
 import { type ReactNode } from 'react';
-import { auth } from '#auth.ts';
 import { tt } from '#content/index.ts';
 import { logout } from '#server/auth/actions.ts';
+import { readApiSession } from '#server/auth/apiAuth.ts';
 
 const AccessDeniedPage = async (): Promise<ReactNode> => {
-  const session = await auth();
+  const session = await readApiSession();
 
   if (!session || session.error) {
     redirect('/login');

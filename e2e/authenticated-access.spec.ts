@@ -60,11 +60,15 @@ test('When a privileged user signs out, then protected pages and BFF requests re
   expect(response.status()).toBe(401);
 });
 
-test('When a privileged user visits the restricted example, then the page and API grant access', async ({ page }) => {
+test('When a privileged user visits the restricted example, then the page displays the backend result and the API grants access', async ({
+  page,
+}) => {
   // Arrange / Act
   await page.goto('/restricted');
   const response = await page.request.get('/api/example/restricted');
+
   // Assert
   await expect(page.getByRole('heading', { exact: true, name: 'Restricted example' })).toBeVisible();
+  await expect(page.getByText('You have access to the restricted example.', { exact: true })).toBeVisible();
   expect(response.status()).toBe(200);
 });

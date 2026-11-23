@@ -94,9 +94,7 @@ const LoginPage = (): ReactNode => {
             <Button disabled={pending} loading={pending} type="submit">
               {tt('pages.login.title')}
             </Button>
-            <Link disableRouterCache={false} href="/register">
-              {tt('pages.login.register')}
-            </Link>
+            <Link href="/register">{tt('pages.login.register')}</Link>
           </Stack>
         </form>
       </Paper>

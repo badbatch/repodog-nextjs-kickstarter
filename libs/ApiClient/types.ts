@@ -1,3 +1,4 @@
+import { type FetchResponse } from 'getta';
 import { type createApiClient as createBffApiClient } from '#bff/httpClient/client.ts';
 import { type createApiClient as createServerApiClient } from '#server/httpClient/client.ts';
 
@@ -22,6 +23,8 @@ export type ApiResult<T> =
       error: Error;
       success: false;
     };
+
+export type ApiResponse<T> = Pick<FetchResponse<T>, 'data' | 'ok' | 'status' | 'statusText'>;
 
 export type UseApiOptions = {
   onError?: (error: Error) => void;

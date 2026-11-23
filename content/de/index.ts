@@ -14,6 +14,7 @@ export const content = {
       passwordRequired: 'Geben Sie Ihr Passwort ein.',
     },
   },
+  navigation: { breadcrumb: 'Brotkrumennavigation', home: 'Startseite', navigation: 'Navigation' },
   pages: {
     accessDenied: {
       description:
@@ -21,10 +22,11 @@ export const content = {
       title: 'Zugriff verweigert',
     },
     example: {
-      action: 'Load API example',
-      success: 'The API request succeeded.',
-      title: 'API example',
-      unavailable: 'The API request failed.',
+      action: 'API-Beispiel laden',
+      message: 'Nachricht',
+      success: 'Die API-Anfrage war erfolgreich.',
+      title: 'API-Beispiel',
+      unavailable: 'Die API-Anfrage ist fehlgeschlagen.',
     },
     home: {
       description:
@@ -61,6 +63,20 @@ export const content = {
       submit: 'Konto erstellen',
       title: 'Konto erstellen',
     },
-    restricted: { title: 'Restricted example' },
+    restricted: { title: 'Beispiel mit Zugriffsbeschränkung' },
+  },
+  records: {
+    clearSelection: 'Auswahl aufheben',
+    empty: 'Noch keine Einträge.',
+    noMatches: 'Keine passenden Einträge.',
+    pageSize: 'Zeilen pro Seite',
+    pagination: 'Ergebnisseiten',
+    record: 'Eintrag',
+    records: 'Einträge',
+    search: 'Einträge suchen',
+    selectRow: 'Zeile auswählen',
+    selectVisible: 'Sichtbare Zeilen auswählen',
+    selected: 'ausgewählt',
+    view: 'Anzeigen',
   },
 } as const;

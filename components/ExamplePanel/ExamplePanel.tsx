@@ -8,7 +8,7 @@ import { useApiClient } from '#libs/ApiClient/useApiClient.ts';
 
 export const ExamplePanel = (): ReactNode => {
   const apiClient = useApiClient();
-  const { data, execute, isError, isLoading } = useApi(apiClient.getExample);
+  const { execute, isError, isLoading, isSuccess } = useApi(apiClient.getExample);
 
   return (
     <Stack maw={580} mx="auto" my="xl">
@@ -21,8 +21,8 @@ export const ExamplePanel = (): ReactNode => {
       >
         {tt('pages.example.action')}
       </Button>
-      {data?.status === 200 && <Alert role="status">{tt('pages.example.success')}</Alert>}
-      {(isError || (data && data.status !== 200)) && (
+      {isSuccess && <Alert role="status">{tt('pages.example.success')}</Alert>}
+      {isError && (
         <Alert color="red" role="alert">
           {tt('pages.example.unavailable')}
         </Alert>

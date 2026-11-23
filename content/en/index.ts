@@ -14,6 +14,7 @@ export const content = {
       passwordRequired: 'Enter your password.',
     },
   },
+  navigation: { breadcrumb: 'Breadcrumb', home: 'Home', navigation: 'Navigation' },
   pages: {
     accessDenied: {
       description: 'Your account does not have access to this area. Sign out to use a different account.',
@@ -21,6 +22,7 @@ export const content = {
     },
     example: {
       action: 'Load API example',
+      message: 'Message',
       success: 'The API request succeeded.',
       title: 'API example',
       unavailable: 'The API request failed.',
@@ -60,5 +62,19 @@ export const content = {
       title: 'Create an account',
     },
     restricted: { title: 'Restricted example' },
+  },
+  records: {
+    clearSelection: 'Clear selection',
+    empty: 'No records yet.',
+    noMatches: 'No records match your search.',
+    pageSize: 'Rows per page',
+    pagination: 'Record pages',
+    record: 'record',
+    records: 'records',
+    search: 'Search records',
+    selectRow: 'Select row',
+    selectVisible: 'Select visible rows',
+    selected: 'selected',
+    view: 'View',
   },
 } as const;
