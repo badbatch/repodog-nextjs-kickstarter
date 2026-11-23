@@ -194,8 +194,8 @@ importers:
         specifier: ^0.1.4
         version: 0.1.4(next@16.4.6(@babel/core@7.28.5(supports-color@10.2.2))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@next-box/logging':
-        specifier: ^0.0.3
-        version: 0.0.3(@next-box/route-handler@0.0.3(next@16.4.6(@babel/core@7.28.5(supports-color@10.2.2))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)))(@opentelemetry/api@1.9.1)
+        specifier: ^0.0.4
+        version: 0.0.4(@next-box/route-handler@0.0.3(next@16.4.6(@babel/core@7.28.5(supports-color@10.2.2))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)))(@opentelemetry/api@1.9.1)
       '@next-box/route-handler':
         specifier: ^0.0.3
         version: 0.0.3(next@16.4.6(@babel/core@7.28.5(supports-color@10.2.2))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))
@@ -1891,8 +1891,8 @@ packages:
       react: '>=19'
       react-dom: '>=19'
 
-  '@next-box/logging@0.0.3':
-    resolution: {integrity: sha512-Poidf5XxFeudHRwNvy4EOtEv+ze4ztV6zPQhwiZX/X9BEzvrqfzhFwmFYhCw41cI0eEwz0n4b0fEAHDIRfYL3g==}
+  '@next-box/logging@0.0.4':
+    resolution: {integrity: sha512-RFZd5oXvf/uJiukPMpwSD3mlVcGj6UubldcEFPQB1ouKGNL4qUFwyXp58HVj/A3kSik3xoF2gSNt6IOBWGINlw==}
     peerDependencies:
       '@next-box/route-handler': ^0.0.3
 
@@ -10404,7 +10404,7 @@ snapshots:
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
 
-  '@next-box/logging@0.0.3(@next-box/route-handler@0.0.3(next@16.4.6(@babel/core@7.28.5(supports-color@10.2.2))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)))(@opentelemetry/api@1.9.1)':
+  '@next-box/logging@0.0.4(@next-box/route-handler@0.0.3(next@16.4.6(@babel/core@7.28.5(supports-color@10.2.2))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)))(@opentelemetry/api@1.9.1)':
     dependencies:
       '@logtape/logtape': 2.4.2
       '@logtape/otel': 2.4.2(@logtape/logtape@2.4.2)

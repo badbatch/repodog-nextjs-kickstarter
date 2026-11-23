@@ -21,6 +21,7 @@ export const content = {
         'Votre compte ne permet pas d’accéder à cette section. Déconnectez-vous pour utiliser un autre compte.',
       title: 'Accès refusé',
     },
+    error: { retry: 'Réessayer', title: 'Une erreur est survenue' },
     example: {
       action: 'Charger l’exemple d’API',
       message: 'Message',

@@ -20,6 +20,7 @@ export const content = {
       description: 'Tu cuenta no tiene acceso a esta sección. Cierra sesión para utilizar otra cuenta.',
       title: 'Acceso denegado',
     },
+    error: { retry: 'Volver a intentarlo', title: 'Algo salió mal' },
     example: {
       action: 'Cargar ejemplo de la API',
       message: 'Mensaje',

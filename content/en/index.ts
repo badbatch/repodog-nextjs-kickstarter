@@ -20,6 +20,7 @@ export const content = {
       description: 'Your account does not have access to this area. Sign out to use a different account.',
       title: 'Access denied',
     },
+    error: { retry: 'Try again', title: 'Something went wrong' },
     example: {
       action: 'Load API example',
       message: 'Message',

@@ -67,7 +67,7 @@
     "@next-box/feature-flags": "^0.1.4",
     "@next-box/i18n": "^0.1.4",
     "@next-box/link-extra": "^0.1.4",
-    "@next-box/logging": "^0.0.3",
+    "@next-box/logging": "^0.0.4",
     "@next-box/route-handler": "^0.0.3",
     "@next/bundle-analyzer": "^16.4.6",
     "@scalar/api-reference-react": "^0.9.96",

@@ -21,6 +21,7 @@ export const content = {
         'Dein Konto hat keinen Zugriff auf diesen Bereich. Melde dich ab, um ein anderes Konto zu verwenden.',
       title: 'Zugriff verweigert',
     },
+    error: { retry: 'Erneut versuchen', title: 'Ein Fehler ist aufgetreten' },
     example: {
       action: 'API-Beispiel laden',
       message: 'Nachricht',
