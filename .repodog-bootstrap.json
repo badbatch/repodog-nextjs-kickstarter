@@ -137,6 +137,7 @@
     "server/auth/auth.test.ts",
     "server/auth/auth.ts",
     "server/auth/providers/credentialsProvider.ts",
+    "server/auth/requireSession.ts",
     "server/auth/schemas.ts",
     "server/auth/types.d.ts",
     "server/createApiHandler.ts",

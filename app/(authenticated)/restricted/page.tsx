@@ -9,15 +9,11 @@ import { tt } from '#content/index.ts';
 import { RestrictedExample } from '#features/example/RestrictedExample.tsx';
 import { getExample } from '#features/example/getExample.ts';
 import { EXAMPLE_ACCESS_POLICY } from '#libs/Auth/policies.ts';
-import { readApiSession } from '#server/auth/apiAuth.ts';
+import { requireSession } from '#server/auth/requireSession.ts';
 import { createServerApiClient } from '#server/createServerApiClient.ts';
 
 const RestrictedPage = async (): Promise<ReactNode> => {
-  const session = await readApiSession();
-
-  if (!session || session.error) {
-    redirect('/login');
-  }
+  const session = await requireSession();
 
   if (!session.user.policies.includes(EXAMPLE_ACCESS_POLICY)) {
     redirect('/access-denied');

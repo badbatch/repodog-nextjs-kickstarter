@@ -1,16 +1,11 @@
 import { Button, Container, Paper, Stack, Text, Title } from '@mantine/core';
-import { redirect } from 'next/navigation.js';
 import { type ReactNode } from 'react';
 import { tt } from '#content/index.ts';
 import { logout } from '#server/auth/actions.ts';
-import { readApiSession } from '#server/auth/apiAuth.ts';
+import { requireSession } from '#server/auth/requireSession.ts';
 
 const AccessDeniedPage = async (): Promise<ReactNode> => {
-  const session = await readApiSession();
-
-  if (!session || session.error) {
-    redirect('/login');
-  }
+  await requireSession();
 
   return (
     <Container py="xl" size={480}>
