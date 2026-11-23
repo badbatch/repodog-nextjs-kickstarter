@@ -10,8 +10,8 @@ export const createExampleHandler = ({
   restricted: boolean;
 }): ReturnType<typeof createApiHandler> =>
   createApiHandler({
-    handler: async (_request, _routeContext, { apiClient, requestId }) => {
-      const result = await getExample({ context: { apiClient }, input: { restricted } });
+    handler: async (_request, _routeContext, { apiClient, logger, requestId }) => {
+      const result = await getExample({ context: { apiClient, logger }, input: { restricted } });
 
       if (result.type === ResultType.Success) {
         return Response.json(result.data);

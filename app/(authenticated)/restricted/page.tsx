@@ -1,6 +1,5 @@
 import { Alert } from '@mantine/core';
 import { ResultType } from '@next-box/route-handler';
-import { redirect } from 'next/navigation.js';
 import { type ReactNode } from 'react';
 import { BreadcrumbNavigation } from '#app/_components/BreadcrumbNavigation.tsx';
 import { PageLayout } from '#components/PageLayout/PageLayout.tsx';
@@ -10,18 +9,14 @@ import { RestrictedExample } from '#features/example/RestrictedExample.tsx';
 import { getExample } from '#features/example/getExample.ts';
 import { EXAMPLE_ACCESS_POLICY } from '#libs/Auth/policies.ts';
 import { requireSession } from '#server/auth/requireSession.ts';
-import { createServerApiClient } from '#server/createServerApiClient.ts';
+import { buildContext } from '#server/buildContext.ts';
 
 const RestrictedPage = async (): Promise<ReactNode> => {
-  const session = await requireSession();
-
-  if (!session.user.policies.includes(EXAMPLE_ACCESS_POLICY)) {
-    redirect('/access-denied');
-  }
+  const session = await requireSession(EXAMPLE_ACCESS_POLICY);
 
   const result = session.apiAccessToken
     ? await getExample({
-        context: { apiClient: await createServerApiClient({ session }) },
+        context: await buildContext(session),
         input: { restricted: true },
       })
     : undefined;

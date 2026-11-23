@@ -13,11 +13,14 @@ const redirect = jest.fn<(path: string) => never>(path => {
   throw new Error(`Redirect: ${path}`);
 });
 
+jest.unstable_mockModule('@next-box/logging', () => ({ getLogger: () => ({ with: jest.fn() }) }));
+
 jest.unstable_mockModule('@next-box/link-extra', () => ({
   Link: 'a',
 }));
 
 jest.unstable_mockModule('#server/auth/actions.ts', () => ({ logout }));
+jest.unstable_mockModule('next/headers.js', () => ({ headers: () => Promise.resolve(new Headers()) }));
 jest.unstable_mockModule('next/navigation.js', () => ({ redirect, usePathname: mockPathname }));
 jest.unstable_mockModule('#server/auth/apiAuth.ts', () => ({ readApiSession: auth }));
 
