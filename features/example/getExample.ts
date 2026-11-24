@@ -19,6 +19,8 @@ export const getExample = ({
   defineOperation({
     context,
     handler: async ({ context: { apiClient, logger }, input }): Promise<ExampleResult> => {
+      logger.info('Starting operation', { operation: 'getExample', restricted: input.restricted });
+
       try {
         const response = await (input.restricted ? apiClient.getRestrictedExample() : apiClient.getExample());
 
