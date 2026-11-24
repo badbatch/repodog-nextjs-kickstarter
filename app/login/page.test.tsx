@@ -15,7 +15,7 @@ jest.unstable_mockModule('@next-box/link-extra', () => ({
   Link: ({ children, href }: { children: ReactNode; href: string }) => <a href={href}>{children}</a>,
 }));
 
-const { default: Page } = await import('./page.tsx');
+const { LoginForm } = await import('./LoginForm.tsx');
 
 describe('login form', () => {
   beforeEach(() => {
@@ -28,7 +28,7 @@ describe('login form', () => {
   it('When an invalid email loses focus and is corrected, then the field error appears and clears without submitting', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderWithMantine(<Page />);
+    renderWithMantine(<LoginForm />);
     const email = screen.getByLabelText(tt('pages.login.email'), { exact: false });
 
     // Act
@@ -52,7 +52,7 @@ describe('login form', () => {
   it('When an empty form is submitted, then field errors are displayed without calling the server action', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderWithMantine(<Page />);
+    renderWithMantine(<LoginForm />);
 
     // Act
     await user.click(screen.getByRole('button', { name: tt('pages.login.title') }));
@@ -66,7 +66,7 @@ describe('login form', () => {
     // Arrange
     const user = userEvent.setup();
     action.mockResolvedValue({ fieldErrors: { email: ['Server email error'] }, formError: 'Service unavailable' });
-    renderWithMantine(<Page />);
+    renderWithMantine(<LoginForm />);
     await user.type(screen.getByLabelText(tt('pages.login.email'), { exact: false }), 'user@example.com');
 
     await user.type(

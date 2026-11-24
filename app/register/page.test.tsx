@@ -15,7 +15,7 @@ jest.unstable_mockModule('@next-box/link-extra', () => ({
   Link: ({ children, href }: { children: ReactNode; href: string }) => <a href={href}>{children}</a>,
 }));
 
-const { default: Page } = await import('./page.tsx');
+const { RegisterForm } = await import('./RegisterForm.tsx');
 
 describe('register form', () => {
   beforeEach(() => {
@@ -28,7 +28,7 @@ describe('register form', () => {
   it('When an invalid email loses focus and is corrected, then the field error appears and clears without submitting', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderWithMantine(<Page />);
+    renderWithMantine(<RegisterForm />);
     const email = screen.getByLabelText(tt('pages.register.email'), { exact: false });
 
     // Act
@@ -52,7 +52,7 @@ describe('register form', () => {
   it('When an empty form is submitted, then field errors are displayed without calling the server action', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderWithMantine(<Page />);
+    renderWithMantine(<RegisterForm />);
 
     // Act
     await user.click(screen.getByRole('button', { name: tt('pages.register.submit') }));
@@ -65,7 +65,7 @@ describe('register form', () => {
   it('When passwords do not match, then confirmation has an error and the action is not called', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderWithMantine(<Page />);
+    renderWithMantine(<RegisterForm />);
     await user.type(screen.getByLabelText(tt('pages.register.email'), { exact: false }), 'user@example.com');
 
     await user.type(
@@ -87,7 +87,7 @@ describe('register form', () => {
     // Arrange
     const user = userEvent.setup();
     action.mockResolvedValue({ fieldErrors: { email: ['Server email error'] }, formError: 'Service unavailable' });
-    renderWithMantine(<Page />);
+    renderWithMantine(<RegisterForm />);
     await user.type(screen.getByLabelText(tt('pages.register.email'), { exact: false }), 'user@example.com');
 
     await user.type(

@@ -9,14 +9,18 @@ import { RestrictedExample } from '#features/example/RestrictedExample.tsx';
 import { getExample } from '#features/example/getExample.ts';
 import { EXAMPLE_ACCESS_POLICY } from '#libs/Auth/policies.ts';
 import { requireSession } from '#server/auth/requireSession.ts';
-import { buildContext } from '#server/buildContext.ts';
+import { buildOperationContext } from '#server/buildOperationContext.ts';
+import { getServerRequestContext } from '#server/getServerRequestContext.ts';
 
 const RestrictedPage = async (): Promise<ReactNode> => {
+  const requestContext = await getServerRequestContext();
+  requestContext.logger.info('Rendering page', { page: '/restricted' });
+
   const session = await requireSession(EXAMPLE_ACCESS_POLICY);
 
   const result = session.apiAccessToken
     ? await getExample({
-        context: await buildContext(session),
+        context: await buildOperationContext(session, requestContext),
         input: { restricted: true },
       })
     : undefined;

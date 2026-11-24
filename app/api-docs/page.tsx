@@ -1,18 +1,12 @@
-'use client';
+import { type ReactNode } from 'react';
+import { getServerRequestContext } from '#server/getServerRequestContext.ts';
+import { ApiDocs } from './ApiDocs.tsx';
 
-import { ApiReferenceReact } from '@scalar/api-reference-react';
-import '@scalar/api-reference-react/style.css';
-import { type ReactElement } from 'react';
+const ApiDocsPage = async (): Promise<ReactNode> => {
+  const { logger } = await getServerRequestContext();
+  logger.info('Rendering page', { page: '/api-docs' });
 
-const ApiDocsPage = (): ReactElement => {
-  return (
-    <ApiReferenceReact
-      configuration={{
-        _integration: 'nextjs',
-        url: '/openapi.json',
-      }}
-    />
-  );
+  return <ApiDocs />;
 };
 
 export default ApiDocsPage;

@@ -13,7 +13,8 @@ const redirect = jest.fn<(path: string) => never>(path => {
   throw new Error(`Redirect: ${path}`);
 });
 
-jest.unstable_mockModule('@next-box/logging', () => ({ getLogger: () => ({ with: jest.fn() }) }));
+const logInfo = jest.fn();
+jest.unstable_mockModule('@next-box/logging', () => ({ getLogger: () => ({ with: () => ({ info: logInfo }) }) }));
 
 jest.unstable_mockModule('@next-box/link-extra', () => ({
   Link: 'a',
@@ -125,6 +126,7 @@ describe('authenticated and policy-restricted pages', () => {
 
     // Assert
     expect(screen.getByText('Browser example fallback')).toBeVisible();
+    expect(logInfo).toHaveBeenCalledWith('Rendering page', { page: '/restricted' });
     expect(redirect).not.toHaveBeenCalled();
   });
 

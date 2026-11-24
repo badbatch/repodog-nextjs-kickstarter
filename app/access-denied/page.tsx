@@ -3,8 +3,12 @@ import { type ReactNode } from 'react';
 import { tt } from '#content/index.ts';
 import { logout } from '#server/auth/actions.ts';
 import { requireSession } from '#server/auth/requireSession.ts';
+import { getServerRequestContext } from '#server/getServerRequestContext.ts';
 
 const AccessDeniedPage = async (): Promise<ReactNode> => {
+  const { logger } = await getServerRequestContext();
+  logger.info('Rendering page', { page: '/access-denied' });
+
   await requireSession();
 
   return (

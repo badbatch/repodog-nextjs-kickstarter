@@ -154,6 +154,8 @@ The logger supplied by [createApiHandler.ts](server/createApiHandler.ts) attache
 
 [Browser instrumentation](instrumentation-client.ts) captures uncaught JavaScript exceptions and unhandled promise rejections. [Route](app/error.tsx) and [root](app/global-error.tsx) error boundaries report browser render failures and offer a retry. Exceptions with a Next.js digest are left to server-side logging. The [telemetry route](app/api/telemetry/client/route.ts) requires sign-in and accepts the rendered message, an optional request ID, and an optional stack trace. It logs that ID as `browserRequestId` alongside the telemetry POST's own IDs and preserves the stack trace as a separate `stack` field.
 
+Each `page.tsx` writes a server-side `Rendering page` log with the route pattern, request ID, and correlation ID. The server-rendered operation and its page log share the same logger. These records describe server renders, including prefetches that reach the server.
+
 ## Getta and the two generated API clients
 
 Getta is a Fetch-based HTTP client for browsers and servers, with tooling that generates typed API clients from OpenAPI contracts. This starter uses it on both sides of the BFF so UI components and server handlers can call named, typed operations instead of constructing requests by hand.
