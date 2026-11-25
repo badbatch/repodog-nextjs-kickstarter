@@ -31,14 +31,17 @@ export const createApiRouteTestSettings = (): AppSettingsConfig => ({
   },
 });
 
+export const mockServerOnlyForApiRouteTests = (): void => {
+  for (const entryPoint of ['@next-box/auth', '@next-box/route-handler']) {
+    jest.unstable_mockModule(require.resolve('server-only', { paths: [require.resolve(entryPoint)] }), () => ({}));
+  }
+};
+
 export const setupApiRouteTestEnvironment = (settings: AppSettingsConfig): (() => void) => {
   const originalSecret = process.env.AUTH_SECRET;
   const originalUrl = process.env.AUTH_URL;
 
-  jest.unstable_mockModule(
-    require.resolve('server-only', { paths: [require.resolve('@next-box/route-handler')] }),
-    () => ({}),
-  );
+  mockServerOnlyForApiRouteTests();
 
   jest.unstable_mockModule('#appSettings/index.ts', () => ({ loadAppSettings: () => Promise.resolve(settings) }));
   process.env.AUTH_SECRET = secret;

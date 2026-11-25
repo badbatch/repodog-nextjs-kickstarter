@@ -1,12 +1,12 @@
+import { type ApiSession } from '@next-box/auth';
 import { createRestClient } from 'getta';
-import { type Session } from 'next-auth';
 import { loadAppSettings } from '#appSettings/index.ts';
 import { type ServerApiClient } from '#libs/ApiClient/types.ts';
 import { createApiClient } from '#server/httpClient/client.ts';
 
 type ServerApiClientOptions = {
   headers?: Record<string, string>;
-  session?: Session;
+  session?: ApiSession;
 };
 
 export const createServerApiClient = async ({

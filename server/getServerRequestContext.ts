@@ -1,6 +1,6 @@
 import { type Logger, getLogger } from '@next-box/logging';
 import { cache } from 'react';
-import { readApiSession } from './auth/apiAuth.ts';
+import { readApiSession } from '#auth.ts';
 import { getServerRequestIds } from './getServerRequestIds.ts';
 
 export type ServerRequestContext = { correlationId: string; logger: Logger; requestId: string };

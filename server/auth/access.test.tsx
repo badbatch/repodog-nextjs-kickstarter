@@ -1,11 +1,11 @@
 /** @jest-environment @repodog/jest-config/FailOnJsdomConsoleEnvironment.mjs */
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { type ApiSession } from '@next-box/auth';
 import { cleanup } from '@testing-library/react';
-import { type Session } from 'next-auth';
 import { renderWithMantine, screen } from '#__testUtils__/index.ts';
 import { tt } from '#content/index.ts';
 
-const auth = jest.fn<() => Promise<Session | undefined>>();
+const auth = jest.fn<() => Promise<ApiSession | undefined>>();
 const mockPathname = jest.fn(() => '/');
 const logout = jest.fn<() => Promise<void>>();
 
@@ -23,7 +23,7 @@ jest.unstable_mockModule('@next-box/link-extra', () => ({
 jest.unstable_mockModule('#server/auth/actions.ts', () => ({ logout }));
 jest.unstable_mockModule('next/headers.js', () => ({ headers: () => Promise.resolve(new Headers()) }));
 jest.unstable_mockModule('next/navigation.js', () => ({ redirect, usePathname: mockPathname }));
-jest.unstable_mockModule('#server/auth/apiAuth.ts', () => ({ readApiSession: auth }));
+jest.unstable_mockModule('#auth.ts', () => ({ readApiSession: auth }));
 
 jest.unstable_mockModule('#server/createServerApiClient.ts', () => ({
   createServerApiClient: () => Promise.resolve({}),
@@ -47,7 +47,7 @@ const { default: AuthenticatedLayout } = await import('#app/(authenticated)/layo
 const { default: RestrictedPage } = await import('#app/(authenticated)/restricted/page.tsx');
 const { default: AccessDeniedPage } = await import('#app/access-denied/page.tsx');
 
-const createSession = (policies: string[]): Session => ({
+const createSession = (policies: string[]): ApiSession => ({
   apiAccessToken: 'example-access-token',
   expires: '2030-01-01T00:00:00Z',
   user: { id: 'user-id', policies, roles: ['ExampleUser'] },

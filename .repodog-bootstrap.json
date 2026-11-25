@@ -141,13 +141,10 @@
     "scripts/testE2eDocker.ts",
     "server/auth/access.test.tsx",
     "server/auth/actions.ts",
-    "server/auth/apiAuth.ts",
     "server/auth/auth.test.ts",
-    "server/auth/auth.ts",
-    "server/auth/providers/credentialsProvider.ts",
+    "server/auth/backendAuthService.ts",
     "server/auth/requireSession.ts",
     "server/auth/schemas.ts",
-    "server/auth/types.d.ts",
     "server/buildOperationContext.ts",
     "server/createApiHandler.ts",
     "server/createServerApiClient.integration.test.ts",
@@ -227,8 +224,8 @@
         },
         {
           "file": "README.md",
-          "from": "An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, eight NextBox packages, typed browser/server API clients, NextAuth authentication, structured logging, policy-based access and a real Docker browser-test suite. It works with [repodog-dotnet-kickstarter](https://github.com/badbatch/repodog-dotnet-kickstarter) through a defined API contract; a different backend can implement that contract too.",
-          "to": "An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, eight NextBox packages, typed browser/server API clients, NextAuth authentication, structured logging and policy-based access. Configure a backend implementing the documented endpoint contract; it can be hosted independently and does not have to use .NET."
+          "from": "An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, nine NextBox packages, typed browser/server API clients, NextAuth authentication, structured logging, policy-based access and a real Docker browser-test suite. It works with [repodog-dotnet-kickstarter](https://github.com/badbatch/repodog-dotnet-kickstarter) through a defined API contract; a different backend can implement that contract too.",
+          "to": "An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, nine NextBox packages, typed browser/server API clients, NextAuth authentication, structured logging and policy-based access. Configure a backend implementing the documented endpoint contract; it can be hosted independently and does not have to use .NET."
         },
         {
           "file": "README.md",

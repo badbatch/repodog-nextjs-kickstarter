@@ -1,6 +1,6 @@
 # Repodog Next.js Kickstarter
 
-An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, eight NextBox packages, typed browser/server API clients, NextAuth authentication, structured logging, policy-based access and a real Docker browser-test suite. It works with [repodog-dotnet-kickstarter](https://github.com/badbatch/repodog-dotnet-kickstarter) through a defined API contract; a different backend can implement that contract too.
+An opinionated Next.js application starter for customer-facing applications, internal tools and administration interfaces. It includes Mantine, nine NextBox packages, typed browser/server API clients, NextAuth authentication, structured logging, policy-based access and a real Docker browser-test suite. It works with [repodog-dotnet-kickstarter](https://github.com/badbatch/repodog-dotnet-kickstarter) through a defined API contract; a different backend can implement that contract too.
 
 ## Install
 
@@ -227,17 +227,17 @@ See [the registration page](app/register/page.tsx) and [its server action](app/r
 
 ## NextAuth authentication and authorization
 
-The root [auth.ts](auth.ts) re-exports [server/auth/auth.ts](server/auth/auth.ts). The credentials provider has its own file under `server/auth/providers/`, and `/api/auth/[...nextauth]` exposes the public auth handlers.
+The root [auth.ts](auth.ts) configures `@next-box/auth` with the app settings and the [backend adapter](server/auth/backendAuthService.ts). NextBox uses `next-auth` for the credentials provider and session cookies. The route at `/api/auth/[...nextauth]` exposes the public auth handlers.
 
 1. The login action passes credentials to NextAuth.
-2. The credentials provider calls `loginUser`, validates the token response and calls `getCurrentUser` with the bearer token.
+2. The backend adapter calls `loginUser`, validates the token response and calls `getCurrentUser` with the bearer token.
 3. The JWT callback stores API credentials and identity/role/policy information in the encrypted HttpOnly session cookie. It generates a correlation ID for the signed-in session.
 4. When tokens approach expiry, the callback refreshes them and reloads `/users/me`. Failure clears API credentials and requires sign-in.
 5. The public session callback exposes identity, roles, policies, correlation ID and auth errors. It does not expose access or refresh tokens to browser JavaScript.
 
 The API's bearer tokens are opaque Identity tokens; NextAuth's session JWT is a separate format and responsibility. `AUTH_SECRET` protects the session. Configure the session lifetime through `Server.Auth.SessionMaxAgeSeconds` (default eight hours), refresh buffer through `Server.Auth.RefreshBufferSeconds` (30 seconds), and request timeout through `Server.Api.TimeoutMs` (10 seconds).
 
-The authenticated route-group layout checks the session. Server Components read it without rotating refresh tokens, since they cannot write the updated session cookie. The restricted page separately checks `ExampleAccess` and redirects to `/access-denied` when needed. The BFF's `withAuth` uses a private server-only session projection to obtain the access token and persist refreshed session cookies. `withPolicy` applies an optional route policy; the backend independently enforces its own policy. Return 401 for missing authentication and 403 for insufficient access.
+The authenticated route-group layout checks the session. Server Components read it without rotating refresh tokens, since they cannot write the updated session cookie. The restricted page separately checks `ExampleAccess` and redirects to `/access-denied` when needed. The BFF's `withAuth` uses NextBox's `withApiSession` to pass the access token and policies to downstream middleware and persist refreshed session cookies. `withPolicy` applies an optional route policy; the backend independently enforces its own policy. Return 401 for missing authentication and 403 for insufficient access.
 
 Sign-out clears the NextAuth session. The API does not expose a revocation endpoint for already-issued bearer tokens. Registration and password recovery endpoints exist in the backend contract; this starter provides registration, sign-in and access-denied screens; a reset-password screen is not included yet.
 

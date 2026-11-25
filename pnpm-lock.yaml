@@ -178,6 +178,9 @@ importers:
       '@next-box/appsettings':
         specifier: ^0.0.12
         version: 0.0.12(@swc/core@1.16.22(@swc/helpers@0.5.23))(@types/node@26.6.6)(react@19.3.1)(typescript@6.0.3)
+      '@next-box/auth':
+        specifier: ^0.0.2
+        version: 0.0.2(next-auth@5.0.0-beta.32(next@16.4.6(@babel/core@7.28.5(supports-color@10.2.2))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1))(next@16.4.6(@babel/core@7.28.5(supports-color@10.2.2))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)
       '@next-box/breadcrumb':
         specifier: ^0.1.16
         version: 0.1.16(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -1858,6 +1861,13 @@ packages:
     resolution: {integrity: sha512-J1MQ/KnRx96Zm4wQ50XsPNmK/PEyn89ryrZ9E++2Y0IDC/VdQsKhC6HtWxknrNS+ST19Eo3hsw8b+bog7y5m4A==}
     hasBin: true
     peerDependencies:
+      react: '>=19'
+
+  '@next-box/auth@0.0.2':
+    resolution: {integrity: sha512-ZV84JS6ohmqYeMHC8M+Ti30Foivqh/ehczjdnrLBO67mJVyyWOCL4v11QF9BZaQ6yTaDnYnKjq07OFW+baWPuQ==}
+    peerDependencies:
+      next: '>=16'
+      next-auth: ^5.0.0-beta.32
       react: '>=19'
 
   '@next-box/breadcrumb@0.1.16':
@@ -10354,6 +10364,13 @@ snapshots:
       - '@swc/wasm'
       - '@types/node'
       - typescript
+
+  '@next-box/auth@0.0.2(next-auth@5.0.0-beta.32(next@16.4.6(@babel/core@7.28.5(supports-color@10.2.2))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1))(next@16.4.6(@babel/core@7.28.5(supports-color@10.2.2))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      next: 16.4.6(@babel/core@7.28.5(supports-color@10.2.2))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      next-auth: 5.0.0-beta.32(next@16.4.6(@babel/core@7.28.5(supports-color@10.2.2))(@opentelemetry/api@1.9.1)(@playwright/test@1.65.1)(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)
+      react: 19.3.1
+      server-only: 0.0.1
 
   '@next-box/breadcrumb@0.1.16(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
     dependencies:

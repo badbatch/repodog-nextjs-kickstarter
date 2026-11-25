@@ -3,10 +3,8 @@ import { afterAll, afterEach, describe, expect, it, jest } from '@jest/globals';
 import { NextRequest } from 'next/server.js';
 import { encode, getToken } from 'next-auth/jwt';
 import assert from 'node:assert/strict';
-import { createRequire } from 'node:module';
+import { mockServerOnlyForApiRouteTests } from '#__testUtils__/apiRouteFixtures.ts';
 import { type AppSettingsConfig } from '#appSettings/schema.ts';
-
-const require = createRequire(import.meta.url);
 
 const settings = {
   Application: { Environment: 'test', Name: 'Kickstarter' },
@@ -17,10 +15,7 @@ const settings = {
   },
 } satisfies AppSettingsConfig;
 
-jest.unstable_mockModule(
-  require.resolve('server-only', { paths: [require.resolve('@next-box/route-handler')] }),
-  () => ({}),
-);
+mockServerOnlyForApiRouteTests();
 
 jest.unstable_mockModule('#appSettings/index.ts', () => ({
   loadAppSettings: () => Promise.resolve(settings),
@@ -33,7 +28,7 @@ process.env.AUTH_SECRET = secret;
 process.env.AUTH_URL = 'http://localhost:3000';
 
 const { createAuthConfig, handlers } = await import('#auth.ts');
-const { authorizeCredentials } = await import('./providers/credentialsProvider.ts');
+const { authorizeCredentials } = await import('./backendAuthService.ts');
 const { createApiHandler } = await import('#server/createApiHandler.ts');
 const { GET: ordinaryExampleRoute } = await import('#app/api/example/route.ts');
 const { GET: restrictedExampleRoute } = await import('#app/api/example/restricted/route.ts');

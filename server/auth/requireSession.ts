@@ -1,8 +1,8 @@
+import { type ApiSession } from '@next-box/auth';
 import { redirect } from 'next/navigation.js';
-import { type Session } from 'next-auth';
-import { readApiSession } from './apiAuth.ts';
+import { readApiSession } from '#auth.ts';
 
-export const requireSession = async (policy?: string): Promise<Session> => {
+export const requireSession = async (policy?: string): Promise<ApiSession> => {
   const session = await readApiSession();
 
   if (!session || session.error) {
