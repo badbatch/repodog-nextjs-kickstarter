@@ -1,14 +1,16 @@
-import { expect, test, userStorageState } from './fixtures/test.ts';
+import { expect, test, userStorageState } from '../fixtures/test.ts';
+import { AccessDeniedPage } from '../pages/accessDeniedPage.ts';
+import { RestrictedPage } from '../pages/restrictedPage.ts';
+import { SignInPage } from '../pages/signInPage.ts';
 
 test.use({ storageState: userStorageState });
 
 test('When a regular user opens a protected page, then they see access denied', async ({ page }) => {
   // Arrange / Act
-  await page.goto('/restricted');
+  await new RestrictedPage(page).goto();
 
   // Assert
-  await expect(page).toHaveURL('/access-denied');
-  await expect(page.getByRole('heading', { exact: true, name: 'Access denied' })).toBeVisible();
+  await new AccessDeniedPage(page).expectOpen();
 });
 
 test('When a regular user calls the BFF directly, then access is forbidden', async ({ request }) => {
@@ -23,12 +25,12 @@ test('When a regular user signs out from access denied, then they can sign in wi
   page,
 }) => {
   // Arrange
-  await page.goto('/access-denied');
+  const accessDeniedPage = new AccessDeniedPage(page);
+  await accessDeniedPage.goto();
 
   // Act
-  await page.getByRole('button', { exact: true, name: 'Sign out' }).click();
+  await accessDeniedPage.signOut();
 
   // Assert
-  await expect(page).toHaveURL('/login');
-  await expect(page.getByRole('heading', { exact: true, name: 'Sign in' })).toBeVisible();
+  await new SignInPage(page).expectOpen();
 });

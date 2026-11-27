@@ -19,16 +19,16 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   fullyParallel: true,
   projects: [
-    { name: 'setup', testMatch: /auth\.setup\.ts/u, use: { ...devices['Desktop Chrome'] } },
+    { name: 'setup', testDir: './e2e/setup', testMatch: '**/*.setup.ts', use: { ...devices['Desktop Chrome'] } },
     {
-      name: 'sign-in',
-      testMatch: /(?:sign-in|registration)\.spec\.ts/u,
+      name: 'public',
+      testDir: './e2e/public',
       use: { ...devices['Desktop Chrome'] },
     },
     {
       dependencies: ['setup'],
-      name: 'chromium',
-      testMatch: /(?:authenticated-access|access-denied|session-expiry|user-access)\.spec\.ts/u,
+      name: 'authenticated',
+      testDir: './e2e/authenticated',
       use: { ...devices['Desktop Chrome'] },
     },
   ],

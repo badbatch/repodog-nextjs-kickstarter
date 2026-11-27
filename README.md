@@ -43,7 +43,9 @@ For Docker E2E, place the kickstarters beside one another and run `pnpm test:e2e
 
 For browser tests against a running API, set `E2E_API_URL`, `E2E_PRIVILEGED_EMAIL`, `E2E_PRIVILEGED_PASSWORD`, `E2E_USER_EMAIL` and `E2E_USER_PASSWORD`. The privileged account needs `ExampleAccess`; the ordinary account must not have it. By default Playwright starts the frontend on port 3100. Set `E2E_BASE_URL` to test an already-running frontend instead. Tests expect English content.
 
-The browser suite covers registration, duplicate-account rejection, password confirmation, sign-in, ordinary authenticated access, policy denial, sign-out, session expiry, session-token privacy and a complete browser → BFF → backend request. New tests use When/then names and Arrange/Act/Assert sections.
+The browser suite covers registration, duplicate-account rejection, password confirmation, sign-in, ordinary authenticated access, policy denial, sign-out, session expiry, session-token privacy and a complete browser → BFF → backend request. Use When/then names and Arrange/Act/Assert sections.
+
+Place anonymous flows in `e2e/public/`, signed-in flows in `e2e/authenticated/`, and session setup in `e2e/setup/`. Playwright discovers tests by directory. Page objects in `e2e/pages/` own their route, heading, and shared UI actions. Use `expectOpen()` to verify the expected URL and heading after navigation. Run a single project with `pnpm exec playwright test --project=authenticated`.
 
 ## Structure and coding patterns
 

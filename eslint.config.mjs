@@ -24,6 +24,10 @@ export default [
   ...playwrightConfig.map(entry => ({
     ...entry,
     files: ['e2e/**/*.ts'],
+    rules: {
+      ...entry.rules,
+      'playwright/expect-expect': ['warn', { assertFunctionNames: ['expectOpen'] }],
+    },
   })),
   {
     files: ['e2e/**/*.ts', 'scripts/**/*.ts'],

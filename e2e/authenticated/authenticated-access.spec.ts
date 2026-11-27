@@ -1,14 +1,20 @@
-import { expect, privilegedStorageState, test } from './fixtures/test.ts';
+import { expect, privilegedStorageState, test } from '../fixtures/test.ts';
+import { HomePage } from '../pages/homePage.ts';
+import { RestrictedPage } from '../pages/restrictedPage.ts';
+import { SignInPage } from '../pages/signInPage.ts';
 
 test.use({ storageState: privilegedStorageState });
 
 test('When a privileged user opens a protected page, then access is granted', async ({ page }) => {
-  // Arrange / Act
-  await page.goto('/');
+  // Arrange
+  const homePage = new HomePage(page);
+
+  // Act
+  await homePage.goto();
 
   // Assert
-  await expect(page).toHaveURL('/');
-  await expect(page.getByRole('button', { exact: true, name: 'Sign out' })).toBeVisible();
+  await homePage.expectOpen();
+  await expect(homePage.signOutButton).toBeVisible();
 });
 
 test('When a privileged user calls the BFF, then the authenticated API request succeeds', async ({ request }) => {
@@ -47,15 +53,22 @@ test('When a privileged user signs out, then protected pages and BFF requests re
   page,
 }) => {
   // Arrange
-  await page.goto('/');
+  const homePage = new HomePage(page);
+  const signInPage = new SignInPage(page);
+
+  await homePage.goto();
 
   // Act
-  await page.getByRole('button', { exact: true, name: 'Sign out' }).click();
-  await expect(page).toHaveURL('/login');
-  await page.goto('/');
+  await homePage.signOut();
 
   // Assert
-  await expect(page).toHaveURL('/login');
+  await signInPage.expectOpen();
+
+  // Act
+  await homePage.goto();
+
+  // Assert
+  await signInPage.expectOpen();
   const response = await page.request.get('/api/example');
   expect(response.status()).toBe(401);
 });
@@ -63,12 +76,15 @@ test('When a privileged user signs out, then protected pages and BFF requests re
 test('When a privileged user visits the restricted example, then the page displays the backend result and the API grants access', async ({
   page,
 }) => {
-  // Arrange / Act
-  await page.goto('/restricted');
+  // Arrange
+  const restrictedPage = new RestrictedPage(page);
+
+  // Act
+  await restrictedPage.goto();
   const response = await page.request.get('/api/example/restricted');
 
   // Assert
-  await expect(page.getByRole('heading', { exact: true, name: 'Restricted example' })).toBeVisible();
-  await expect(page.getByText('You have access to the restricted example.', { exact: true })).toBeVisible();
+  await restrictedPage.expectOpen();
+  await expect(restrictedPage.result).toBeVisible();
   expect(response.status()).toBe(200);
 });
